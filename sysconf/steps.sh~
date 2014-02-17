@@ -1,0 +1,13 @@
+# execute from root
+
+# install packages
+apt-get update
+apt-get install -y python-software-properties
+apt-add-repository -y ppa:freerdp-team/freerdp
+apt-get update
+apt-get install -y freerdp-x11 python3.2 git xorg python3-tk vim
+
+# create user
+useradd -m -U -c "RDP User" user
+
+

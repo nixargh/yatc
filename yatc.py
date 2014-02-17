@@ -31,6 +31,9 @@ def reboot():
   print("rebooting...")
 ##############################################################################
 root = Tk()
+SW = root.winfo_screenwidth() / 3.2
+SH = root.winfo_screenheight() / 3.2
+root.geometry("500x300+%d+%d" % (SW, SH))
 connectButton = Button(root, text="Connect", command=connectRDP)
 connectButton.pack()
 
