@@ -25,8 +25,15 @@ import sys
 from tkinter import *
 from subprocess import call
 ##############################################################################
+def readConf():
+  file = open("./config", "r")
+  user = file.readline()
+  domain = file.readline()
+  password = file.readline()
+
 def connectRDP():
   print("connecting...")
+  call(["xfreerdp", "/f", "/bpp:16", "/rfx", "/d:" + domain, "/u:" + user, "/p:" + password, "/v:localhost"])
 
 def reboot():
   print("rebooting...")
@@ -34,8 +41,10 @@ def reboot():
 
 def shutdown():
   print("shutting down...")
-  call(["sudo", "shutdown"])
+  call(["sudo", "poweroff"])
 ##############################################################################
+readConf()
+print(user)
 root = Tk()
 
 SW = root.winfo_screenwidth() / 3.2

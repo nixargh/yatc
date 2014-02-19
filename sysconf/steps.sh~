@@ -18,3 +18,4 @@ useradd -m -U -c "RDP User" user
 # add some rights to user
 echo -e "user\tALL=(root) NOPASSWD:reboot,shutdown\n" >> /etc/sudoers
 
+# add something to users xinitrc and bash_profile
