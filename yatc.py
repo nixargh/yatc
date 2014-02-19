@@ -26,10 +26,10 @@ from tkinter import *
 from subprocess import call
 ##############################################################################
 def readConf():
-  file = open("./config", "r")
-  user = file.readline()
-  domain = file.readline()
-  password = file.readline()
+  file = open("./yatc/config", "r")
+  user = file.readline().rstrip('\r\n')
+  domain = file.readline().rstrip('\r\n')
+  password = file.readline().rstrip('\r\n')
   return user, domain, password
 
 def connectRDP():
