@@ -30,6 +30,7 @@ def readConf():
   user = file.readline()
   domain = file.readline()
   password = file.readline()
+  return user, domain, password
 
 def connectRDP():
   print("connecting...")
@@ -43,8 +44,7 @@ def shutdown():
   print("shutting down...")
   call(["sudo", "poweroff"])
 ##############################################################################
-readConf()
-print(user)
+user, domain, password = readConf()
 root = Tk()
 
 SW = root.winfo_screenwidth() / 3.2
