@@ -23,21 +23,35 @@ version = "0.1.0"
 ##############################################################################
 import sys
 from tkinter import *
+from subprocess import call
 ##############################################################################
 def connectRDP():
   print("connecting...")
 
 def reboot():
   print("rebooting...")
+  call(["sudo", "reboot"])
+
+def shutdown():
+  print("shutting down...")
+  call(["sudo", "shutdown"])
 ##############################################################################
 root = Tk()
+
 SW = root.winfo_screenwidth() / 3.2
 SH = root.winfo_screenheight() / 3.2
 root.geometry("500x300+%d+%d" % (SW, SH))
-connectButton = Button(root, text="Connect", command=connectRDP)
-connectButton.pack()
 
-rebootButton = Button(root, text="Reboot", command=reboot)
-rebootButton.pack()
+connectButton = Button(root, text = "Connect", command = connectRDP)
+connectButton.place(x = 100, y = 50, width = 300, height = 100)
+
+systemFrame = Frame(root)
+systemFrame.place(x = 100, y = 250, width = 300 )
+
+rebootButton = Button(systemFrame, text = "Reboot", command = reboot)
+rebootButton.pack(side = 'right')
+
+shutdownButton = Button(systemFrame, text = "Shutdown", command = shutdown)
+shutdownButton.pack(side = 'right')
 
 root.mainloop()

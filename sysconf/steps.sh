@@ -15,3 +15,7 @@ useradd -m -U -c "RDP User" user
 # comment last line at /etc/init/tty1.conf
 # add "exec /bin/login -f user < /dev/tty1 > /dev/tty1 2>&1"
 
+# add some rights to user
+echo -e "user\tALL=(root) NOPASSWD:reboot,shutdown\n" >> /etc/sudoers
+
+# add something to users xinitrc and bash_profile
