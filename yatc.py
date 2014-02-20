@@ -22,11 +22,17 @@ version = "0.1.0"
 # along with this program.  If not, see http://www.gnu.org/licenses/gpl.html.
 ##############################################################################
 import sys
+import os
 from tkinter import *
 from subprocess import call
 ##############################################################################
+config_dir = "./yatc"
+config = "config"
+##############################################################################
 def readConf():
-  file = open("./yatc/config", "r")
+  if os.path.isdir(config_dir):
+    os.chdir(config_dir)
+  file = open(config, "r")
   user = file.readline().rstrip('\r\n')
   domain = file.readline().rstrip('\r\n')
   password = file.readline().rstrip('\r\n')
@@ -34,6 +40,7 @@ def readConf():
 
 def connectRDP():
   print("connecting...")
+  print(["xfreerdp", "/f", "/bpp:16", "/rfx", "/d:" + domain, "/u:" + user, "/p:" + password, "/v:localhost"])
   call(["xfreerdp", "/f", "/bpp:16", "/rfx", "/d:" + domain, "/u:" + user, "/p:" + password, "/v:localhost"])
 
 def reboot():
