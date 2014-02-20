@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-version = "0.1.0"
+version = "0.1.1"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -29,6 +29,11 @@ from subprocess import call
 config_dir = "./yatc"
 config = "config"
 ##############################################################################
+def createLog():
+  import logging
+  logging.basicConfig(filename = 'yatc.log', level = logging.DEBUG) 
+  return logging
+  
 def readConf():
   if os.path.isdir(config_dir):
     os.chdir(config_dir)
@@ -39,19 +44,25 @@ def readConf():
   return user, domain, password
 
 def connectRDP():
-  print("connecting...")
-  print(["xfreerdp", "/f", "/bpp:16", "/rfx", "/d:" + domain, "/u:" + user, "/p:" + password, "/v:localhost"])
-  call(["xfreerdp", "/f", "/bpp:16", "/rfx", "/d:" + domain, "/u:" + user, "/p:" + password, "/v:localhost"])
+  log.debug("Starting RDP...")
+  root.withdraw()
+  result = call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/d:" + domain, "/u:" + user, "/p:" + password, "/v:localhost"])
+  log.info(call)
+  root.deiconify()
 
 def reboot():
-  print("rebooting...")
   call(["sudo", "reboot"])
 
 def shutdown():
-  print("shutting down...")
   call(["sudo", "poweroff"])
 ##############################################################################
+global log
+log = createLog()
+
 user, domain, password = readConf()
+
+log.debug("user = %s; domain = %s; password = %s;", user, domain, password) 
+
 root = Tk()
 
 SW = root.winfo_screenwidth() / 3.2
