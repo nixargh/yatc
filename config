@@ -1,4 +1,5 @@
-user
-dom.local
-qwerty111
-localhost
+saveUser=1
+login=pupkin
+domain=dom.local
+password=qwerty111
+host=localhost

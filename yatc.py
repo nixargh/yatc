@@ -24,114 +24,189 @@ version = "0.1.2"
 import sys
 import os
 import time
+import logging
 from tkinter import *
 from subprocess import call
 ##############################################################################
-config_dir = "./yatc"
-config = "config"
 ##############################################################################
+
+# Logging
+#
 def createLog():
-  import logging
-  logging.basicConfig(filename = 'yatc.log', level = logging.DEBUG) 
-  return logging
+  logging.basicConfig(filename = 'yatc.log', level = logging.DEBUG, format = u'%(levelname)-8s [%(asctime)s] %(message)s') 
+##############################################################################
+
+# Operations with configuration
+#
+class Config():
+  def __init__(self):
+    self.config_dir = "./yatc"
+    self.config = "config"
+
+  def read(self):
+    if os.path.isdir(self.config_dir):
+      os.chdir(self.config_dir)
+    file = open(self.config, "r")
+    conf = {} 
+    for line in file:
+      line = line.rstrip("\r\n")
+      attr, value = line.rsplit("=")
+      conf[attr] = value
+    logging.debug(conf)
+    return conf
+
+# Main apllication window
+#
+class App():
+  def __init__(self):
+    logging.info("Starting GUI...")
+    self.root = Tk()
+
+    self.connectButton()
+    self.systemFrame()
+    
+    rootW = 500
+    rootH = 300
+    SW = (self.root.winfo_screenwidth() - rootW) / 2
+    SH = (self.root.winfo_screenheight() - rootH) / 2
+    self.root.geometry("%dx%d+%d+%d" % (rootW, rootH, SW, SH))
+    
+    self.root.mainloop()
   
-def readConf():
-  if os.path.isdir(config_dir):
-    os.chdir(config_dir)
-  file = open(config, "r")
-  user = file.readline().rstrip('\r\n')
-  domain = file.readline().rstrip('\r\n')
-  password = file.readline().rstrip('\r\n')
-  server = file.readline().rstrip('\r\n')
-  return user, domain, password, server
+  # Connection button
+  #
+  def connectButton(self):
+    connectButton = Button(self.root, text = "Connect", anchor = "s", pady = 20, font = "bold", command = self.connectRDP)
+    connectButton.place(x = 75, y = 50, width = 350, height = 130)
 
-def createRoot():
-  root = Tk()
-  rootW = 500
-  rootH = 300
-  SW = (root.winfo_screenwidth() - rootW) / 2
-  SH = (root.winfo_screenheight() - rootH) / 2
-  root.geometry("%dx%d+%d+%d" % (rootW, rootH, SW, SH))
-  return root
+    credFrame = Frame(connectButton)
+    credFrame.place(x = 25, y = 10)
 
-def connectButton(parent):
-  connectButton = Button(parent, text = "Connect", anchor = "s", pady = 20, font = "bold", command = connectRDP)
-  connectButton.place(x = 75, y = 50, width = 350, height = 130)
+    loginLabel = Label(credFrame, width = 7, text = "Логин:", anchor = "w")
+    loginLabel.grid(row = 1, column = 1)
 
-  credFrame = Frame(connectButton)
-  credFrame.place(x = 25, y = 10)
+    loginEntry = Entry(credFrame, width = 28)
+    loginEntry.grid(row = 1, column = 2)
+    if conf.get("login"):
+      loginEntry.insert(0, conf["login"])
+    self.login = loginEntry.get
 
-  loginLabel = Label(credFrame, width = 7, text = "Логин:", anchor = "w")
-  loginLabel.grid(row = 1, column = 1)
+    passwordLabel = Label(credFrame, width = 7, text = "Пароль:", anchor = "w")
+    passwordLabel.grid(row = 2, column = 1)
 
-  loginEntry = Entry(credFrame, bd = 2, width = 28)
-  loginEntry.grid(row = 1, column = 2)
+    passwordEntry = Entry(credFrame, width = 28, show = '*')
+    passwordEntry.grid(row = 2, column = 2)
+    self.password = passwordEntry.get
 
-  passwordLabel = Label(credFrame, width = 7, text = "Пароль:", anchor = "w")
-  passwordLabel.grid(row = 2, column = 1)
+  # Frame with other button at the bottom of window
+  #
+  def systemFrame(self):
+    systemFrame = Frame(self.root)
+    systemFrame.place(x = 75, y = 250, width = 350 )
 
-  passwordEntry = Entry(credFrame, bd = 2, width = 28, show = '*')
-  passwordEntry.grid(row = 2, column = 2)
-  return connectButton
+    rebootButton = Button(systemFrame, width = 10, text = "Reboot", command = self.reboot)
+    rebootButton.pack(side = 'right')
 
-def systemFrame(parent):
-  systemFrame = Frame(parent)
-  systemFrame.place(x = 75, y = 250, width = 350 )
+    shutdownButton = Button(systemFrame, width = 10, text = "Shutdown", command = self.shutdown)
+    shutdownButton.pack(side = 'right')
 
-  rebootButton = Button(systemFrame, width = 10, text = "Reboot", command = reboot)
-  rebootButton.pack(side = 'right')
+    settingsButton = Button(systemFrame, width = 5, text = "Settings", command = self.settings)
+    settingsButton.pack(side = 'left')
 
-  shutdownButton = Button(systemFrame, width = 10, text = "Shutdown", command = shutdown)
-  shutdownButton.pack(side = 'right')
+  # command fro RDP connection
+  #
+  def connectRDP(self):
+    conf["login"] = self.login()
+    conf["password"] = self.password()
+    logging.info("Starting RDP...")
+    self.root.withdraw()
+    logging.debug("config before rdp start: %s" % conf)
+    result = call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/d:" + conf["domain"], "/u:" + conf["login"], "/p:" + conf["password"], "/v:" + conf["host"]])
+    self.root.deiconify()
 
-  settingsButton = Button(systemFrame, width = 5, text = "Settings", command = settings)
-  settingsButton.pack(side = 'left')
-  return systemFrame
+  # command for reboot
+  #
+  def reboot(self):
+    call(["sudo", "reboot"])
 
-def createSettings(parent):
-  settings = Toplevel(parent)
-  settingsW = 250
-  settingsH = 150
-  SW = (settings.winfo_screenwidth() - settingsW) / 2
-  SH = (settings.winfo_screenheight() - settingsH) / 2
-  settings.geometry("%dx%d+%d+%d" % (settingsW, settingsH, SW, SH))
-  settings.tkraise(parent)
-  settings.grab_set()
+  # command for shutdown
+  # 
+  def shutdown(self):
+    call(["sudo", "poweroff"])
 
-  closeButton = Button(settings, text = "Close", width = 5, command = settings.destroy())
-  closeButton.pack(side = "bottom")
+  # command to start Settings window
+  #
+  def settings(self):
+    settings = Settings(self.root)
 
-  return settings
+# Settings window
+#
+class Settings():
+  def __init__(self, parent):
+    self.window = Toplevel(parent)
+    settingsW = 250
+    settingsH = 150
+    SW = (self.window.winfo_screenwidth() - settingsW) / 2
+    SH = (self.window.winfo_screenheight() - settingsH) / 2
+    self.window.geometry("%dx%d+%d+%d" % (settingsW, settingsH, SW, SH))
+    self.window.tkraise(parent)
+    self.window.grab_set()
 
-def connectRDP():
-  log.debug("Starting RDP...")
-  root.withdraw()
-  result = call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/d:" + domain, "/u:" + user, "/p:" + password, "/v:" + server])
-  log.info(call)
-  root.deiconify()
+    self.createSettingsFrame()
 
-def reboot():
-  call(["sudo", "reboot"])
+    closeButton = Button(self.window, text = "Close", width = 5, command = self.quitSettings) 
+    closeButton.pack(side = "bottom")
 
-def shutdown():
-  call(["sudo", "poweroff"])
+  # Frame with settings
+  #
+  def createSettingsFrame(self):
+    settingsFrame = Frame(self.window)
+    settingsFrame.pack(side = "top")
 
-def settings():
-  createSettings(root)
+    hostLabel = Label(settingsFrame, text = "Сервер:", anchor = "w", width = 10)
+    hostLabel.grid(row = 1, column = 1)
 
-def quitSettings(parent):
-  parent.destroy()
+    hostEntry = Entry(settingsFrame, width = 20)
+    hostEntry.grid(row = 1, column = 2, columnspan = 2)
+    if conf.get("host"):
+      hostEntry.insert(0, conf["host"])
+    self.host = hostEntry.get
+
+    domainLabel = Label(settingsFrame, text = "Домен:", anchor = "w", width = 10)
+    domainLabel.grid(row = 2, column = 1)
+
+    domainEntry = Entry(settingsFrame, width = 20)
+    domainEntry.grid(row = 2, column = 2, columnspan = 2)
+    if conf.get("domain"):
+      domainEntry.insert(0, conf["domain"])
+    self.domain = domainEntry.get
+
+    saveUserLabel = Label(settingsFrame, text = "Запоминать логин:", anchor = "w", width = 20)
+    saveUserLabel.grid(row = 3, column = 1, columnspan = 2)
+
+    self.saveUser = IntVar()
+    saveUserCheckbutton = Checkbutton(settingsFrame, variable = self.saveUser, comman = self.cb)
+    saveUserCheckbutton.grid(row = 3, column = 3)
+    if int(conf.get("saveUser")) == 1:
+      saveUserCheckbutton.select()
+
+  # command to close Settings window and save settings
+  #
+  def quitSettings(self):
+    conf["host"] = self.host()
+    conf["domain"] = self.domain()
+    conf["saveUser"] = self.saveUser.get()
+    self.window.destroy()
 
 ##############################################################################
-global log
-log = createLog()
-log.info("%s\tStarting yatc..." % time.asctime())
+# create log
+createLog()
+logging.info("Starting yatc...")
 
-user, domain, password, server = readConf()
-log.debug("user = %s; domain = %s; password = %s; server = %s;", user, domain, password, server) 
+# read configuration
+global conf
+config = Config()
+conf = config.read()
 
-root = createRoot()
-connectButton(root)
-systemFrame(root)
-
-root.mainloop()
+# start application
+app = App()
