@@ -37,7 +37,7 @@ def chdirToHome():
 # Logging
 #
 def createLog():
-  logging.basicConfig(filename = "yatc.log", level = logging.DEBUG, format = u"%(levelname)-8s [%(asctime)s] %(message)s") 
+  logging.basicConfig(filename = "yatc.log", level = logging.DEBUG, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
 ##############################################################################
 
 # Operations with configuration
