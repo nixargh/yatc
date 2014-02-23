@@ -29,18 +29,22 @@ from tkinter import *
 from subprocess import call
 ##############################################################################
 ##############################################################################
+def chdirToHome():
+  abspath = os.path.abspath(__file__)
+  dname = os.path.dirname(abspath)
+  os.chdir(dname)
 
 # Logging
 #
 def createLog():
-  logging.basicConfig(filename = 'yatc.log', level = logging.DEBUG, format = u'%(levelname)-8s [%(asctime)s] %(message)s') 
+  logging.basicConfig(filename = "yatc.log", level = logging.DEBUG, format = u"%(levelname)-8s [%(asctime)s] %(message)s") 
 ##############################################################################
 
 # Operations with configuration
 #
 class Config():
   def __init__(self):
-    self.configDir = "./yatc"
+  #  self.configDir = "./yatc"
     self.configFile = "config"
     self.config = {}
     logging.info("Config initialized.")
@@ -48,8 +52,8 @@ class Config():
   # read config from file
   #
   def read(self):
-    if os.path.isdir(self.configDir):
-      os.chdir(self.configDir)
+  #  if os.path.isdir(self.configDir):
+  #    os.chdir(self.configDir)
     file = open(self.configFile, "r")
     conf = {} 
     for line in file:
@@ -69,8 +73,8 @@ class Config():
       del config["login"]
 
     # write settings to file
-    if os.path.isdir(self.configDir):
-      os.chdir(self.configDir)
+#    if os.path.isdir(self.configDir):
+#      os.chdir(self.configDir)
     file = open(self.configFile, "w")
     for attr, value in config.items():
       file.write("%s=%s\n" % (attr, value))
@@ -239,6 +243,9 @@ class Settings():
     self.window.destroy()
 
 ##############################################################################
+# change directory to script home
+chdirToHome()
+
 # create log
 createLog()
 logging.info("Starting yatc...")
