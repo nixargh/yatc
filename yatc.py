@@ -40,26 +40,57 @@ def createLog():
 #
 class Config():
   def __init__(self):
-    self.config_dir = "./yatc"
-    self.config = "config"
+    self.configDir = "./yatc"
+    self.configFile = "config"
+    self.config = {}
+    logging.info("Config initialized.")
 
+  # read config from file
+  #
   def read(self):
-    if os.path.isdir(self.config_dir):
-      os.chdir(self.config_dir)
-    file = open(self.config, "r")
+    if os.path.isdir(self.configDir):
+      os.chdir(self.configDir)
+    file = open(self.configFile, "r")
     conf = {} 
     for line in file:
       line = line.rstrip("\r\n")
       attr, value = line.rsplit("=")
       conf[attr] = value
+    file.close()
+    logging.info("Configuration read.")
     logging.debug(conf)
-    return conf
+    self.config = conf
+
+  # write config to file
+  #
+  def write(self, config):
+    # don't save user if this option unchecked
+    if config["saveUser"] == 0:
+      del config["login"]
+
+    # write settings to file
+    if os.path.isdir(self.configDir):
+      os.chdir(self.configDir)
+    file = open(self.configFile, "w")
+    for attr, value in config.items():
+      file.write("%s=%s\n" % (attr, value))
+    file.close() 
+    logging.info("Configuration wrote.")
+
+  # return config value
+  #
+  def get(self):
+    return self.config
 
 # Main apllication window
 #
 class App():
-  def __init__(self):
+  def __init__(self, config):
     logging.info("Starting GUI...")
+
+    self.config = config
+    self.conf = config.get()
+
     self.root = Tk()
 
     self.connectButton()
@@ -87,8 +118,8 @@ class App():
 
     loginEntry = Entry(credFrame, width = 28)
     loginEntry.grid(row = 1, column = 2)
-    if conf.get("login"):
-      loginEntry.insert(0, conf["login"])
+    if self.conf.get("login"):
+      loginEntry.insert(0, self.conf["login"])
     self.login = loginEntry.get
 
     passwordLabel = Label(credFrame, width = 7, text = "Пароль:", anchor = "w")
@@ -116,12 +147,18 @@ class App():
   # command fro RDP connection
   #
   def connectRDP(self):
-    conf["login"] = self.login()
-    conf["password"] = self.password()
+    self.conf["login"] = self.login()
+
+    # save config to save login if option enabled
+    if int(self.conf["saveUser"]) == 1:
+      self.config.write(self.conf)
+
+    self.conf["password"] = self.password()
     logging.info("Starting RDP...")
     self.root.withdraw()
-    logging.debug("config before rdp start: %s" % conf)
-    result = call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/d:" + conf["domain"], "/u:" + conf["login"], "/p:" + conf["password"], "/v:" + conf["host"]])
+    logging.debug("Config before rdp start: %s" % self.conf)
+    result = call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/d:" + self.conf["domain"], "/u:" + self.conf["login"], "/p:" + self.conf["password"], "/v:" + self.conf["host"]])
+    logging.debug("Connection result: %s" % result)
     self.root.deiconify()
 
   # command for reboot
@@ -137,12 +174,13 @@ class App():
   # command to start Settings window
   #
   def settings(self):
-    settings = Settings(self.root)
+    settings = Settings(self.root, self.conf)
 
 # Settings window
 #
 class Settings():
-  def __init__(self, parent):
+  def __init__(self, parent, conf):
+    self.conf = conf
     self.window = Toplevel(parent)
     settingsW = 250
     settingsH = 150
@@ -168,8 +206,8 @@ class Settings():
 
     hostEntry = Entry(settingsFrame, width = 20)
     hostEntry.grid(row = 1, column = 2, columnspan = 2)
-    if conf.get("host"):
-      hostEntry.insert(0, conf["host"])
+    if self.conf.get("host"):
+      hostEntry.insert(0, self.conf["host"])
     self.host = hostEntry.get
 
     domainLabel = Label(settingsFrame, text = "Домен:", anchor = "w", width = 10)
@@ -177,25 +215,27 @@ class Settings():
 
     domainEntry = Entry(settingsFrame, width = 20)
     domainEntry.grid(row = 2, column = 2, columnspan = 2)
-    if conf.get("domain"):
-      domainEntry.insert(0, conf["domain"])
+    if self.conf.get("domain"):
+      domainEntry.insert(0, self.conf["domain"])
     self.domain = domainEntry.get
 
     saveUserLabel = Label(settingsFrame, text = "Запоминать логин:", anchor = "w", width = 20)
     saveUserLabel.grid(row = 3, column = 1, columnspan = 2)
 
     self.saveUser = IntVar()
-    saveUserCheckbutton = Checkbutton(settingsFrame, variable = self.saveUser, comman = self.cb)
+    saveUserCheckbutton = Checkbutton(settingsFrame, variable = self.saveUser)
     saveUserCheckbutton.grid(row = 3, column = 3)
-    if int(conf.get("saveUser")) == 1:
+    if int(self.conf.get("saveUser")) == 1:
       saveUserCheckbutton.select()
 
   # command to close Settings window and save settings
   #
   def quitSettings(self):
-    conf["host"] = self.host()
-    conf["domain"] = self.domain()
-    conf["saveUser"] = self.saveUser.get()
+    self.conf["host"] = self.host()
+    self.conf["domain"] = self.domain()
+    self.conf["saveUser"] = self.saveUser.get()
+    config = Config()
+    config.write(self.conf)
     self.window.destroy()
 
 ##############################################################################
@@ -204,9 +244,8 @@ createLog()
 logging.info("Starting yatc...")
 
 # read configuration
-global conf
 config = Config()
-conf = config.read()
+config.read()
 
 # start application
-app = App()
+app = App(config)
