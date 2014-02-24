@@ -26,7 +26,7 @@ import os
 import time
 import logging
 from tkinter import *
-from subprocess import call
+from subprocess import call, check_output
 ##############################################################################
 ##############################################################################
 def chdirToHome():
@@ -195,14 +195,21 @@ class App():
 class Settings():
   def __init__(self, parent, conf):
     self.conf = conf
+    self.parent = parent
+
+    # hide main window
+    self.parent.withdraw()
+
     self.window = Toplevel(parent, bd = 2, cursor = "arrow")
-    settingsW = 250
-    settingsH = 150
+    settingsW = 500
+    settingsH = 300
     SW = (self.window.winfo_screenwidth() - settingsW) / 2
     SH = (self.window.winfo_screenheight() - settingsH) / 2
     self.window.geometry("%dx%d+%d+%d" % (settingsW, settingsH, SW, SH))
     self.window.tkraise(parent)
     self.window.grab_set()
+
+    logging.debug(check_output(["xrandr"]))
 
     self.createSettingsFrame()
 
@@ -213,7 +220,7 @@ class Settings():
   #
   def createSettingsFrame(self):
     settingsFrame = Frame(self.window)
-    settingsFrame.pack(side = "top")
+    settingsFrame.pack(side = "top", anchor = "w")
 
     hostLabel = Label(settingsFrame, text = "Сервер:", anchor = "w", width = 10)
     hostLabel.grid(row = 1, column = 1)
@@ -251,6 +258,7 @@ class Settings():
     config = Config()
     config.write(self.conf)
     self.window.destroy()
+    self.parent.deiconify()
 
 ##############################################################################
 # change directory to script home

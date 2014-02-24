@@ -1,4 +1,4 @@
-host=localhost
 login=user1
 domain=test.local
+host=localhost
 saveUser=1
