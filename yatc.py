@@ -200,7 +200,7 @@ class Settings():
     # hide main window
     self.parent.withdraw()
 
-    self.window = Toplevel(parent, bd = 2, cursor = "arrow")
+    self.window = Toplevel(parent, bd = 2, cursor = "left_ptr")
     settingsW = 500
     settingsH = 300
     SW = (self.window.winfo_screenwidth() - settingsW) / 2
