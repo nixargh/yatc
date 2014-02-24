@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-version = "0.1.2"
+version = "0.1.3"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -96,6 +96,8 @@ class App():
     self.conf = config.get()
 
     self.root = Tk()
+    self.mainFrame = Frame(self.root, cursor = "arrow")
+    self.mainFrame.pack(fill = BOTH, expand = TRUE)
 
     self.connectButton()
     self.systemFrame()
@@ -111,7 +113,7 @@ class App():
   # Connection button
   #
   def connectButton(self):
-    connectButton = Button(self.root, text = "Connect", anchor = "s", pady = 20, font = "bold", command = self.connectRDP)
+    connectButton = Button(self.mainFrame, text = "Connect", anchor = "s", pady = 20, font = "bold", command = self.connectRDP)
     connectButton.place(x = 75, y = 50, width = 350, height = 130)
 
     credFrame = Frame(connectButton)
@@ -120,23 +122,21 @@ class App():
     loginLabel = Label(credFrame, width = 7, text = "Логин:", anchor = "w")
     loginLabel.grid(row = 1, column = 1)
 
-    loginEntry = Entry(credFrame, width = 28)
-    loginEntry.grid(row = 1, column = 2)
+    self.loginEntry = Entry(credFrame, width = 28)
+    self.loginEntry.grid(row = 1, column = 2)
     if self.conf.get("login"):
-      loginEntry.insert(0, self.conf["login"])
-    self.login = loginEntry.get
+      self.loginEntry.insert(0, self.conf["login"])
 
     passwordLabel = Label(credFrame, width = 7, text = "Пароль:", anchor = "w")
     passwordLabel.grid(row = 2, column = 1)
 
-    passwordEntry = Entry(credFrame, width = 28, show = '*')
-    passwordEntry.grid(row = 2, column = 2)
-    self.password = passwordEntry.get
+    self.passwordEntry = Entry(credFrame, width = 28, show = '*')
+    self.passwordEntry.grid(row = 2, column = 2)
 
   # Frame with other button at the bottom of window
   #
   def systemFrame(self):
-    systemFrame = Frame(self.root)
+    systemFrame = Frame(self.mainFrame)
     systemFrame.place(x = 75, y = 250, width = 350 )
 
     rebootButton = Button(systemFrame, width = 10, text = "Reboot", command = self.reboot)
@@ -151,18 +151,28 @@ class App():
   # command fro RDP connection
   #
   def connectRDP(self):
-    self.conf["login"] = self.login()
+    self.conf["login"] = self.loginEntry.get()
 
     # save config to save login if option enabled
     if int(self.conf["saveUser"]) == 1:
       self.config.write(self.conf)
 
-    self.conf["password"] = self.password()
+    self.conf["password"] = self.passwordEntry.get()
     logging.info("Starting RDP...")
     self.root.withdraw()
     logging.debug("Config before rdp start: %s" % self.conf)
     result = call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/d:" + self.conf["domain"], "/u:" + self.conf["login"], "/p:" + self.conf["password"], "/v:" + self.conf["host"]])
     logging.debug("Connection result: %s" % result)
+  
+    if self.conf.get("password"):
+      del self.conf["password"]
+    self.passwordEntry.delete(0, END)
+    
+    if self.conf["saveUser"] == 0:
+      self.loginEntry.delete(0, END)
+      if self.conf.get("login"):
+        del self.conf["login"]
+
     self.root.deiconify()
 
   # command for reboot
@@ -185,7 +195,7 @@ class App():
 class Settings():
   def __init__(self, parent, conf):
     self.conf = conf
-    self.window = Toplevel(parent)
+    self.window = Toplevel(parent, bd = 2, cursor = "arrow")
     settingsW = 250
     settingsH = 150
     SW = (self.window.winfo_screenwidth() - settingsW) / 2
