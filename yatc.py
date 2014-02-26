@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-version = "0.1.3"
+version = "0.2.0"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -25,14 +25,23 @@ import sys
 import os
 import time
 import logging
+import PAM
 from tkinter import *
 from subprocess import call, check_output
 ##############################################################################
 ##############################################################################
+# change current directory to script own directory
+#
 def chdirToHome():
   abspath = os.path.abspath(__file__)
   dname = os.path.dirname(abspath)
   os.chdir(dname)
+
+# authenticate user using PAM
+#
+def checkUser(user, password):
+  from simplepam import authenticate
+  return authenticate(user, password)
 
 # Logging
 #
@@ -92,6 +101,8 @@ class App():
   def __init__(self, config):
     logging.info("Starting GUI...")
 
+    self.user = "nixargh"
+
     self.config = config
     self.conf = config.get()
 
@@ -113,7 +124,7 @@ class App():
   # Connection button
   #
   def connectButton(self):
-    connectButton = Button(self.mainFrame, text = "Connect", anchor = "s", pady = 20, font = "bold", command = self.connectRDP)
+    connectButton = Button(self.mainFrame, text = "Подключиться", anchor = "s", pady = 20, font = "bold", command = self.connectRDP)
     connectButton.place(x = 75, y = 50, width = 350, height = 130)
 
     credFrame = Frame(connectButton)
@@ -139,13 +150,13 @@ class App():
     systemFrame = Frame(self.mainFrame)
     systemFrame.place(x = 75, y = 250, width = 350 )
 
-    rebootButton = Button(systemFrame, width = 10, text = "Reboot", command = self.reboot)
+    rebootButton = Button(systemFrame, width = 10, text = "Перезагрузить", command = self.reboot)
     rebootButton.pack(side = 'right')
 
-    shutdownButton = Button(systemFrame, width = 10, text = "Shutdown", command = self.shutdown)
+    shutdownButton = Button(systemFrame, width = 10, text = "Выключить", command = self.shutdown)
     shutdownButton.pack(side = 'right')
 
-    settingsButton = Button(systemFrame, width = 5, text = "Settings", command = self.settings)
+    settingsButton = Button(systemFrame, width = 5, text = "Натройки", command = self.settings)
     settingsButton.pack(side = 'left')
 
   # command fro RDP connection
@@ -188,7 +199,45 @@ class App():
   # command to start Settings window
   #
   def settings(self):
-    settings = Settings(self.root, self.conf)
+    self.password = None
+    self.askPassword()
+    self.root.wait_window(self.askPassTop)
+    if self.password:
+      if checkUser(self.user, self.password):
+        self.password = None
+        settings = Settings(self.root, self.conf)
+        
+  # password dialog
+  #
+  def askPassword(self):
+    self.askPassTop = Toplevel(self.mainFrame, bd = 2, relief = "raised")
+    settingsW = 200
+    settingsH = 90
+    SW = (self.askPassTop.winfo_screenwidth() - settingsW) / 2
+    SH = (self.askPassTop.winfo_screenheight() - settingsH) / 2
+    self.askPassTop.geometry("%dx%d+%d+%d" % (settingsW, settingsH, SW, SH))
+    self.askPassTop.tkraise(self.root)
+    self.askPassTop.grab_set()
+
+    askPassLabel = Label(self.askPassTop, text = "Введите пароль для %s:" % self.user)
+    askPassLabel.grid(row = 1, column = 1, columnspan = 2)
+
+    self.askPassEntry = Entry(self.askPassTop, width = 20, show = "*")
+    self.askPassEntry.grid(row = 2, column = 1, columnspan = 2)
+    
+    askPassOKButton = Button(self.askPassTop, text = "OK", width = 6, command = self.enterpass, default=ACTIVE)
+    askPassOKButton.grid(row = 4, column = 1)
+
+    askPassCancelButton = Button(self.askPassTop, text = "Отменить", width = 6, command = self.askPassTop.destroy)
+    askPassCancelButton.grid(row = 4, column = 2)
+
+    self.askPassTop.bind("<Return>", self.enterpass)
+  
+  # password callback
+  #
+  def enterpass(self, event=None):
+    self.password = self.askPassEntry.get()
+    self.askPassTop.destroy()
 
 # Settings window
 #
@@ -198,11 +247,11 @@ class Settings():
     self.parent = parent
 
     # hide main window
-    self.parent.withdraw()
+    #self.parent.withdraw()
 
-    self.window = Toplevel(parent, bd = 2, cursor = "left_ptr")
-    settingsW = 500
-    settingsH = 300
+    self.window = Toplevel(parent, bd = 2, relief = "raised", cursor = "left_ptr")
+    settingsW = 300
+    settingsH = 150
     SW = (self.window.winfo_screenwidth() - settingsW) / 2
     SH = (self.window.winfo_screenheight() - settingsH) / 2
     self.window.geometry("%dx%d+%d+%d" % (settingsW, settingsH, SW, SH))
@@ -219,8 +268,8 @@ class Settings():
   # Frame with settings
   #
   def createSettingsFrame(self):
-    settingsFrame = Frame(self.window)
-    settingsFrame.pack(side = "top", anchor = "w")
+    settingsFrame = Frame(self.window, bd = 2, relief = "sunken")
+    settingsFrame.pack(side = "top", anchor = "w", fill = "both")
 
     hostLabel = Label(settingsFrame, text = "Сервер:", anchor = "w", width = 10)
     hostLabel.grid(row = 1, column = 1)
@@ -258,7 +307,7 @@ class Settings():
     config = Config()
     config.write(self.conf)
     self.window.destroy()
-    self.parent.deiconify()
+    #self.parent.deiconify()
 
 ##############################################################################
 # change directory to script home
