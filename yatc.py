@@ -43,7 +43,7 @@ def checkUser(user, password):
   auth = authenticate(user, password)
   if auth:
     logging.info("%s authenticated" % user)
-    retrun True
+    return True
   else:
     loggin.info("%s failed to authenticate: %s" % (user, auth))
     return False
