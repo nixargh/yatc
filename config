@@ -1,4 +1,5 @@
 domain=test.local
 host=localhost
-login=user1
+login=user
 saveUser=1
+admuser=admuser

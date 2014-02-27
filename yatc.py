@@ -25,7 +25,6 @@ import sys
 import os
 import time
 import logging
-import PAM
 from tkinter import *
 from subprocess import call, check_output
 ##############################################################################
@@ -41,7 +40,14 @@ def chdirToHome():
 #
 def checkUser(user, password):
   from simplepam import authenticate
-  return authenticate(user, password)
+  auth = authenticate(user, password)
+  if auth:
+    logging.info("%s authenticated" % user)
+    retrun True
+  else:
+    loggin.info("%s failed to authenticate: %s" % (user, auth))
+    return False
+
 
 # Logging
 #
@@ -53,7 +59,6 @@ def createLog():
 #
 class Config():
   def __init__(self):
-  #  self.configDir = "./yatc"
     self.configFile = "config"
     self.config = {}
     logging.info("Config initialized.")
@@ -61,8 +66,6 @@ class Config():
   # read config from file
   #
   def read(self):
-  #  if os.path.isdir(self.configDir):
-  #    os.chdir(self.configDir)
     file = open(self.configFile, "r")
     conf = {} 
     for line in file:
@@ -82,8 +85,6 @@ class Config():
       del config["login"]
 
     # write settings to file
-#    if os.path.isdir(self.configDir):
-#      os.chdir(self.configDir)
     file = open(self.configFile, "w")
     for attr, value in config.items():
       file.write("%s=%s\n" % (attr, value))
@@ -100,8 +101,6 @@ class Config():
 class App():
   def __init__(self, config):
     logging.info("Starting GUI...")
-
-    self.user = "nixargh"
 
     self.config = config
     self.conf = config.get()
@@ -156,7 +155,7 @@ class App():
     shutdownButton = Button(systemFrame, width = 10, text = "Выключить", command = self.shutdown)
     shutdownButton.pack(side = 'right')
 
-    settingsButton = Button(systemFrame, width = 5, text = "Натройки", command = self.settings)
+    settingsButton = Button(systemFrame, width = 6, text = "Настройки", command = self.settings)
     settingsButton.pack(side = 'left')
 
   # command fro RDP connection
@@ -203,7 +202,7 @@ class App():
     self.askPassword()
     self.root.wait_window(self.askPassTop)
     if self.password:
-      if checkUser(self.user, self.password):
+      if checkUser(self.conf["admuser"], self.password):
         self.password = None
         settings = Settings(self.root, self.conf)
         
@@ -219,7 +218,7 @@ class App():
     self.askPassTop.tkraise(self.root)
     self.askPassTop.grab_set()
 
-    askPassLabel = Label(self.askPassTop, text = "Введите пароль для %s:" % self.user)
+    askPassLabel = Label(self.askPassTop, text = "Введите пароль для %s:" % self.conf["admuser"])
     askPassLabel.grid(row = 1, column = 1, columnspan = 2)
 
     self.askPassEntry = Entry(self.askPassTop, width = 20, show = "*")

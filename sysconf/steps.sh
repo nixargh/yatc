@@ -2,7 +2,6 @@
 ##### Settings ################################################################
 USER=user
 ADM_USER=admuser
-CUPS_SUBNET="192.168.1.*"
 ###############################################################################
 
 # install packages
@@ -13,7 +12,7 @@ apt-get update
 apt-get install -y freerdp-x11 python3 git xorg python3-tk vim cups puppet
 
 # create user
-useradd -m -U -c "RDP User" $USER
+useradd -m -U -c "RDP User" -s /bin/bash $USER
 
 # create user for remote configuration
 #useradd -m -U -G sudo -c "Remote configuration" commander
@@ -32,7 +31,7 @@ service ssh restart
 
 # install python module for pam authentication
 cd /home/$USER
-get clone https://github.com/leonnnn/python3-simplepam.git
+git clone https://github.com/leonnnn/python3-simplepam.git
 cd ./python3-simplepam
 python3 setup.py install
 
@@ -53,23 +52,19 @@ echo -e "$USER\tALL=(root) NOPASSWD:/sbin/reboot,/sbin/poweroff\n" >> /etc/sudoe
 #
 # /home/user/.bash_profile
 BASH_PROFILE=/home/$USER/.bash_profile
-cat << EOF > $BASH_PROFILE 
-#Startx Automatically
-if [[ -z "$DISPLAY" ]] && [[ $(tty) = /dev/tty1 ]]; then
- . startx
-fi
-EOF
-chown $USER:$USER $BASH_PROFILE 
+echo ". startx" > $BASH_PROFILE
 
 # /home/user/.xinitrc
 XINITRC=/home/$USER/.xinitrc
 echo "./yatc/yatc.py  -- -depth 16" > $XINITRC
-chown $USER:$USER $XINITRC
+
+# fix onership
+chown $USER:$USER /home/$USER
 
 # set cupsd to listen on all interfaces
 # and allow access from subnet
 CUPSD_CONF=/etc/cups/cupsd.conf
 mv $CUPSD_CONF $CUPSD_CONF.orig
-awk '/\/Location/ {print "  Allow from $CUPS_SUBNET"; print; next }1' $CUPSD_CONF.orig >> $CUPSD_CONF
+awk '/\/Location/ {print "  Allow from 10.0.*"; print; next }1' $CUPSD_CONF.orig >> $CUPSD_CONF
 sed -i {s/127.0.0.1/0.0.0.0/} $CUPSD_CONF
 service cups restart
