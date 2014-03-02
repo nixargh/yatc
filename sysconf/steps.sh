@@ -12,7 +12,7 @@ apt-get update
 apt-get install -y freerdp-x11 python3 git xorg python3-tk vim cups puppet
 
 # create user
-useradd -m -U -c "RDP User" -s /bin/bash $USER
+useradd -m -U -c "RDP User" -G shadow -s /bin/bash $USER
 
 # create user for remote configuration
 #useradd -m -U -G sudo -c "Remote configuration" commander
