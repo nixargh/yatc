@@ -6,16 +6,30 @@ ADM_USER=admuser
 
 # install packages
 apt-get update
-apt-get install -y python-software-properties
-apt-add-repository -y ppa:freerdp-team/freerdp
-apt-get update
-apt-get install -y freerdp-x11 python3 git xorg python3-tk vim cups puppet
+apt-get install -y python3 git xorg python3-tk vim cups puppet
+
+# install FreeRDP from git
+cd /home/$ADM_USER
+git clone git://github.com/FreeRDP/FreeRDP.git
+cd ./FreeRDP
+
+apt-get install build-essential git-core cmake libssl-dev libx11-dev libxext-dev libxinerama-dev \
+libxcursor-dev libxdamage-dev libxv-dev libxkbfile-dev libasound2-dev libcups2-dev libxml2 libxml2-dev \
+libxrandr-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev
+
+cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_SSE2=ON .
+
+make
+make install
+
+echo "/usr/local/lib/freerdp" > /etc/ld.so.conf.d/freerdp.conf
+ldconfig
+
+# cd
+# rm -fr /home/$ADM_USER/FreeRDP
 
 # create user
 useradd -m -U -c "RDP User" -G shadow -s /bin/bash $USER
-
-# create user for remote configuration
-#useradd -m -U -G sudo -c "Remote configuration" commander
 
 # add group for ssh access
 groupadd ssh_users
