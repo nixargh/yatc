@@ -26,7 +26,7 @@ import os
 import time
 import logging
 from tkinter import *
-from subprocess import call, check_output
+from subprocess import call, check_call, check_output
 ##############################################################################
 ##############################################################################
 # change current directory to script own directory
@@ -45,7 +45,7 @@ def checkUser(user, password):
     logging.info("%s authenticated" % user)
     return True
   else:
-    loggin.info("%s failed to authenticate: %s" % (user, auth))
+    logging.info("%s failed to authenticate: %s" % (user, auth))
     return False
 
 # get current screen resolution
@@ -118,18 +118,23 @@ class App():
     self.conf["screenRes"] = "%dx%d" % (screenW, screenH)
     logging.info("screen resolution = %s" % self.conf["screenRes"])
 
+    # create root window
     self.root = Tk()
-    self.mainFrame = Frame(self.root, cursor = "arrow")
-    self.mainFrame.pack(fill = BOTH, expand = TRUE)
 
-    self.connectButton()
-    self.systemFrame()
-    
+    # set root window geometry
     rootW = 500
     rootH = 300
     SW = (self.root.winfo_screenwidth() - rootW) / 2
     SH = (self.root.winfo_screenheight() - rootH) / 2
     self.root.geometry("%dx%d+%d+%d" % (rootW, rootH, SW, SH))
+    
+    # create main Frame widget
+    self.mainFrame = Frame(self.root, cursor = "arrow")
+    self.mainFrame.pack(fill = BOTH, expand = TRUE)
+
+    # start buttons creation
+    self.connectButton()
+    self.systemFrame()
     
     self.root.mainloop()
   
@@ -174,28 +179,42 @@ class App():
   # command fro RDP connection
   #
   def connectRDP(self):
+    logging.info("Starting RDP...")
+
+    # get user login
     self.conf["login"] = self.loginEntry.get()
 
     # save config to save login if option enabled
     if int(self.conf["saveUser"]) == 1:
       self.config.write(self.conf)
 
-    self.conf["password"] = self.passwordEntry.get()
-    logging.info("Starting RDP...")
-    self.root.withdraw()
-    logging.debug("Config before rdp start: %s" % self.conf)
-    result = call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain"], "/u:" + self.conf["login"], "/p:" + self.conf["password"], "/v:" + self.conf["host"]])
-    logging.debug("Connection result: %s" % result)
-  
-    if self.conf.get("password"):
-      del self.conf["password"]
+    # get user password and clear Entry
+    password = self.passwordEntry.get()
     self.passwordEntry.delete(0, END)
+
+    # hide root window
+    self.root.withdraw()
+
+    # start RDP session by freerdp
+    try:
+      logging.debug("Config before rdp start: %s" % self.conf)
+      exitCode1 = check_call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain1"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host1"]])
+      logging.debug("FIRST RDP connection exit code: %s" % exitCode1)
+    except:
+      logging.error("Failed to start FIRST RDP session.")
+      try:
+        exitCode2 = check_call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain2"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host2"]])
+        logging.debug("SECOND RDP connection exit code: %s" % exitCode2)
+      except:
+        logging.error("Failed to start SECOND RDP session.")
     
+    # remove login information from conf dictionary if required
     if self.conf["saveUser"] == 0:
       self.loginEntry.delete(0, END)
       if self.conf.get("login"):
         del self.conf["login"]
 
+    # show root window
     self.root.deiconify()
 
   # command for reboot
@@ -263,7 +282,7 @@ class Settings():
 
     self.window = Toplevel(parent, bd = 2, relief = "raised", cursor = "left_ptr")
     settingsW = 300
-    settingsH = 150
+    settingsH = 200
     SW = (self.window.winfo_screenwidth() - settingsW) / 2
     SH = (self.window.winfo_screenheight() - settingsH) / 2
     self.window.geometry("%dx%d+%d+%d" % (settingsW, settingsH, SW, SH))
@@ -278,50 +297,76 @@ class Settings():
   # Frame with settings
   #
   def createSettingsFrame(self):
+    # Settings Frame view
     settingsFrame = Frame(self.window, bd = 2, relief = "sunken")
     settingsFrame.pack(side = "top", anchor = "w", fill = "both")
 
-    hostLabel = Label(settingsFrame, text = "Сервер:", anchor = "w", width = 10)
-    hostLabel.grid(row = 1, column = 1)
+    # First terminal server
+    host1Label = Label(settingsFrame, text = "Сервер 1:", anchor = "w", width = 10)
+    host1Label.grid(row = 1, column = 1)
 
-    hostEntry = Entry(settingsFrame, width = 20)
-    hostEntry.grid(row = 1, column = 2, columnspan = 2)
-    if self.conf.get("host"):
-      hostEntry.insert(0, self.conf["host"])
-    self.host = hostEntry.get
+    host1Entry = Entry(settingsFrame, width = 20)
+    host1Entry.grid(row = 1, column = 2, columnspan = 2)
+    if self.conf.get("host1"):
+      host1Entry.insert(0, self.conf["host1"])
+    self.host1 = host1Entry.get
 
-    domainLabel = Label(settingsFrame, text = "Домен:", anchor = "w", width = 10)
-    domainLabel.grid(row = 2, column = 1)
+    # Second terminal server
+    host2Label = Label(settingsFrame, text = "Сервер 2:", anchor = "w", width = 10)
+    host2Label.grid(row = 2, column = 1)
 
-    domainEntry = Entry(settingsFrame, width = 20)
-    domainEntry.grid(row = 2, column = 2, columnspan = 2)
-    if self.conf.get("domain"):
-      domainEntry.insert(0, self.conf["domain"])
-    self.domain = domainEntry.get
+    host2Entry = Entry(settingsFrame, width = 20)
+    host2Entry.grid(row = 2, column = 2, columnspan = 2)
+    if self.conf.get("host2"):
+      host2Entry.insert(0, self.conf["host2"])
+    self.host2 = host2Entry.get
 
+    # First domain 
+    domain1Label = Label(settingsFrame, text = "Домен 1:", anchor = "w", width = 10)
+    domain1Label.grid(row = 3, column = 1)
+
+    domain1Entry = Entry(settingsFrame, width = 20)
+    domain1Entry.grid(row = 3, column = 2, columnspan = 2)
+    if self.conf.get("domain1"):
+      domain1Entry.insert(0, self.conf["domain1"])
+    self.domain1 = domain1Entry.get
+
+    # Second domain 
+    domain2Label = Label(settingsFrame, text = "Домен 2:", anchor = "w", width = 10)
+    domain2Label.grid(row = 4, column = 1)
+
+    domain2Entry = Entry(settingsFrame, width = 20)
+    domain2Entry.grid(row = 4, column = 2, columnspan = 2)
+    if self.conf.get("domain2"):
+      domain2Entry.insert(0, self.conf["domain2"])
+    self.domain2 = domain2Entry.get
+
+    # Check box to save login for future sessions
     saveUserLabel = Label(settingsFrame, text = "Запоминать логин:", anchor = "w", width = 20)
-    saveUserLabel.grid(row = 3, column = 1, columnspan = 2)
+    saveUserLabel.grid(row = 5, column = 1, columnspan = 2)
 
     self.saveUser = IntVar()
     saveUserCheckbutton = Checkbutton(settingsFrame, variable = self.saveUser)
-    saveUserCheckbutton.grid(row = 3, column = 3)
+    saveUserCheckbutton.grid(row = 5, column = 3)
     if int(self.conf.get("saveUser")) == 1:
       saveUserCheckbutton.select()
     
     # show screen resolution at settings screen
     screenResLabel = Label(settingsFrame, text = "Разрешение экрана:", anchor = "w", width = 20)
-    screenResLabel.grid(row = 4, column = 1, columnspan = 2)
+    screenResLabel.grid(row = 6, column = 1, columnspan = 2)
 
     screenResEntry = Entry(settingsFrame, width = 10)
-    screenResEntry.grid(row = 4, column = 3, columnspan = 1)
+    screenResEntry.grid(row = 6, column = 3, columnspan = 1)
     screenResEntry.insert(0, self.conf["screenRes"])
     screenResEntry.config(state = "readonly")
 
   # command to close Settings window and save settings
   #
   def quitSettings(self):
-    self.conf["host"] = self.host()
-    self.conf["domain"] = self.domain()
+    self.conf["host1"] = self.host1()
+    self.conf["domain1"] = self.domain1()
+    self.conf["host2"] = self.host2()
+    self.conf["domain2"] = self.domain2()
     self.conf["saveUser"] = self.saveUser.get()
     config = Config()
     config.write(self.conf)
