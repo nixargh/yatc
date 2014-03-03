@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-version = "0.2.0"
+version = "0.2.1"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -48,6 +48,14 @@ def checkUser(user, password):
     loggin.info("%s failed to authenticate: %s" % (user, auth))
     return False
 
+# get current screen resolution
+#
+def getScreenRes():
+  output = str(check_output(["xrandr"]))
+  screenRes = output.rsplit("\n")[0]
+  screenRes = screenRes.rsplit(", ")[1]
+  _, screenW, _, screeH = screenRes.rsplit(" ")
+  return int(screenW), int(screeH)
 
 # Logging
 #
@@ -104,6 +112,11 @@ class App():
 
     self.config = config
     self.conf = config.get()
+
+    # get X server screen width and height
+    screenW, screenH = getScreenRes()
+    self.conf["screenRes"] = "%dx%d" % (screenW, screenH)
+    logging.info("screen resolution = %s" % self.conf["screenRes"])
 
     self.root = Tk()
     self.mainFrame = Frame(self.root, cursor = "arrow")
@@ -171,7 +184,7 @@ class App():
     logging.info("Starting RDP...")
     self.root.withdraw()
     logging.debug("Config before rdp start: %s" % self.conf)
-    result = call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/d:" + self.conf["domain"], "/u:" + self.conf["login"], "/p:" + self.conf["password"], "/v:" + self.conf["host"]])
+    result = call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain"], "/u:" + self.conf["login"], "/p:" + self.conf["password"], "/v:" + self.conf["host"]])
     logging.debug("Connection result: %s" % result)
   
     if self.conf.get("password"):
@@ -257,8 +270,6 @@ class Settings():
     self.window.tkraise(parent)
     self.window.grab_set()
 
-    logging.debug(check_output(["xrandr"]))
-
     self.createSettingsFrame()
 
     closeButton = Button(self.window, text = "Close", width = 5, command = self.quitSettings) 
@@ -296,6 +307,15 @@ class Settings():
     saveUserCheckbutton.grid(row = 3, column = 3)
     if int(self.conf.get("saveUser")) == 1:
       saveUserCheckbutton.select()
+    
+    # show screen resolution at settings screen
+    screenResLabel = Label(settingsFrame, text = "Разрешение экрана:", anchor = "w", width = 20)
+    screenResLabel.grid(row = 4, column = 1, columnspan = 2)
+
+    screenResEntry = Entry(settingsFrame, width = 10)
+    screenResEntry.grid(row = 4, column = 3, columnspan = 1)
+    screenResEntry.insert(0, self.conf["screenRes"])
+    screenResEntry.config(state = "readonly")
 
   # command to close Settings window and save settings
   #

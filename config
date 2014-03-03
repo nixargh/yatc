@@ -1,5 +1,5 @@
-login=user
-admuser=snowwolf
-host=localhost
 saveUser=1
+host=localhost
+login=user
+admuser=admuser
 domain=test.local
