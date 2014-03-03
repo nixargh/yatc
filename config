@@ -1,10 +1,10 @@
-host=localhost
-domain=test.local
+screenRes=3840x1080
+admuser=admuser
 host1=serv1
 host2=serv2
-admuser=admuser
-screenRes=3840x1080
-saveUser=1
-domain2=dom2
-domain1=dom1
+domain=test.local
 login=user
+host=localhost
+domain1=dom1
+domain2=dom2
+saveUser=1

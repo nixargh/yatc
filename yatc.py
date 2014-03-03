@@ -136,6 +136,12 @@ class App():
     self.connectButton()
     self.systemFrame()
     
+    # bind Enter to start connection
+    self.root.bind("<Return>", self.connectRDP)
+
+    # bind Ctrl+S to open Settings
+    self.root.bind("<Control-s>", self.settings)
+
     self.root.mainloop()
   
   # Connection button
@@ -178,7 +184,7 @@ class App():
 
   # command fro RDP connection
   #
-  def connectRDP(self):
+  def connectRDP(self, event = None):
     logging.info("Starting RDP...")
 
     # get user login
@@ -198,15 +204,15 @@ class App():
     # start RDP session by freerdp
     try:
       logging.debug("Config before rdp start: %s" % self.conf)
-      exitCode1 = check_call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain1"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host1"]])
+      exitCode1 = check_call(["xfreerdp", "/printer", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain1"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host1"]])
       logging.debug("FIRST RDP connection exit code: %s" % exitCode1)
-    except:
-      logging.error("Failed to start FIRST RDP session.")
+    except BaseException as err: 
+      logging.error("Failed to start FIRST RDP session: %s" % err)
       try:
         exitCode2 = check_call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain2"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host2"]])
         logging.debug("SECOND RDP connection exit code: %s" % exitCode2)
-      except:
-        logging.error("Failed to start SECOND RDP session.")
+      except BaseException as e:
+        logging.error("Failed to start SECOND RDP session: %s" % err)
     
     # remove login information from conf dictionary if required
     if self.conf["saveUser"] == 0:
@@ -229,7 +235,7 @@ class App():
 
   # command to start Settings window
   #
-  def settings(self):
+  def settings(self, event=None):
     self.password = None
     self.askPassword()
     self.root.wait_window(self.askPassTop)
@@ -280,7 +286,7 @@ class Settings():
     # hide main window
     #self.parent.withdraw()
 
-    self.window = Toplevel(parent, bd = 2, relief = "raised", cursor = "left_ptr")
+    self.window = Toplevel(parent, bd = 2, relief = "raised", cursor = "right_ptr")
     settingsW = 300
     settingsH = 200
     SW = (self.window.winfo_screenwidth() - settingsW) / 2
