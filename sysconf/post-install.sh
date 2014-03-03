@@ -1,3 +1,4 @@
+#!/bin/bash
 # must be executed from root
 ##### Settings ################################################################
 USER=user
@@ -9,7 +10,7 @@ apt-get update
 apt-get install -y python3 git xorg python3-tk vim cups puppet
 
 # install FreeRDP from git
-cd /home/$ADM_USER
+cd /tmp
 git clone git://github.com/FreeRDP/FreeRDP.git
 cd ./FreeRDP
 
@@ -24,9 +25,6 @@ make install
 
 echo "/usr/local/lib/freerdp" > /etc/ld.so.conf.d/freerdp.conf
 ldconfig
-
-# cd
-# rm -fr /home/$ADM_USER/FreeRDP
 
 # create user
 useradd -m -U -c "RDP User" -G shadow -s /bin/bash $USER
@@ -44,7 +42,7 @@ echo -e "AllowGroups\tssh_users" >> $SSHD_CONF
 service ssh restart
 
 # install python module for pam authentication
-cd /home/$USER
+cd /tmp
 git clone https://github.com/leonnnn/python3-simplepam.git
 cd ./python3-simplepam
 python3 setup.py install

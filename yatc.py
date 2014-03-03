@@ -202,17 +202,15 @@ class App():
     self.root.withdraw()
 
     # start RDP session by freerdp
-    try:
-      logging.debug("Config before rdp start: %s" % self.conf)
-      exitCode1 = check_call(["xfreerdp", "/printer", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain1"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host1"]])
-      logging.debug("FIRST RDP connection exit code: %s" % exitCode1)
-    except BaseException as err: 
-      logging.error("Failed to start FIRST RDP session: %s" % err)
-      try:
-        exitCode2 = check_call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain2"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host2"]])
-        logging.debug("SECOND RDP connection exit code: %s" % exitCode2)
-      except BaseException as e:
-        logging.error("Failed to start SECOND RDP session: %s" % err)
+    logging.debug("Config before rdp start: %s" % self.conf)
+    exitCode1 = check_call(["xfreerdp", "/printer", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain1"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host1"]])
+    logging.debug("FIRST RDP connection exit code: %s" % exitCode1)
+    if exitCode1 == 131:
+      logging.error("Failed to start FIRST RDP session.")
+      exitCode2 = check_call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain2"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host2"]])
+      logging.debug("SECOND RDP connection exit code: %s" % exitCode2)
+      if exitCode2 == 131:
+        logging.error("Failed to start SECOND RDP session.")
     
     # remove login information from conf dictionary if required
     if self.conf["saveUser"] == 0:
