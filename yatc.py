@@ -48,6 +48,14 @@ def checkUser(user, password):
     logging.info("%s failed to authenticate: %s" % (user, auth))
     return False
 
+# check if TCP port 3389 is opened at host
+#
+def checkRDPPort(host):
+  if check_call(["nc", "-z", "-w2", host, "3389"]) == 0:
+    return True
+  else:
+    return False
+
 # get current screen resolution
 #
 def getScreenRes():
@@ -201,17 +209,23 @@ class App():
     # hide root window
     self.root.withdraw()
 
-    # start RDP session by freerdp
-    logging.debug("Config before rdp start: %s" % self.conf)
-    exitCode1 = check_call(["xfreerdp", "/printer", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain1"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host1"]])
-    logging.debug("FIRST RDP connection exit code: %s" % exitCode1)
-    if exitCode1 == 131:
-      logging.error("Failed to start FIRST RDP session.")
-      exitCode2 = check_call(["xfreerdp", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + self.conf["domain2"], "/u:" + self.conf["login"], "/p:" + password, "/v:" + self.conf["host2"]])
-      logging.debug("SECOND RDP connection exit code: %s" % exitCode2)
-      if exitCode2 == 131:
-        logging.error("Failed to start SECOND RDP session.")
-    
+    # choose avaliable terminal server to connect
+    host = self.conf["host1"]
+    domain = self.conf["domain1"]
+    if not checkRDPPort(host):
+      logging.info("RDP not listening at host1 (%s)" % host)
+      host = self.conf["host2"]
+      domain = self.conf["domain2"]
+      if not checkRDPPort(host):
+        logging.info("RDP not listening at host2 (%s)" % host)
+      else:
+        # start RDP session by freerdp
+        logging.debug("Config before rdp start: %s" % self.conf)
+        try:
+          call(["xfreerdp", "/printer", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
+        except BaseException as err:
+          logging.error("freerdp connection failed with: " % err)
+
     # remove login information from conf dictionary if required
     if self.conf["saveUser"] == 0:
       self.loginEntry.delete(0, END)
