@@ -51,9 +51,10 @@ def checkUser(user, password):
 # check if TCP port 3389 is opened at host
 #
 def checkRDPPort(host):
-  if check_call(["nc", "-z", "-w2", host, "3389"]) == 0:
+  try:
+    check_call(["nc", "-z", "-w1", host, "3389"])
     return True
-  else:
+  except:
     return False
 
 # get current screen resolution
@@ -206,9 +207,6 @@ class App():
     password = self.passwordEntry.get()
     self.passwordEntry.delete(0, END)
 
-    # hide root window
-    self.root.withdraw()
-
     # choose avaliable terminal server to connect
     host = self.conf["host1"]
     domain = self.conf["domain1"]
@@ -222,7 +220,12 @@ class App():
         # start RDP session by freerdp
         logging.debug("Config before rdp start: %s" % self.conf)
         try:
+          # hide root window
+          self.root.withdraw()
+          # start freerdp
           call(["xfreerdp", "/printer", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
+          # show root window
+          self.root.deiconify()
         except BaseException as err:
           logging.error("freerdp connection failed with: " % err)
 
@@ -232,8 +235,6 @@ class App():
       if self.conf.get("login"):
         del self.conf["login"]
 
-    # show root window
-    self.root.deiconify()
 
   # command for reboot
   #
