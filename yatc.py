@@ -225,7 +225,7 @@ class App():
         # hide root window
         self.root.withdraw()
         # start freerdp
-        call(["xfreerdp", "/printer", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
+        call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
         # show root window
         self.root.deiconify()
       except BaseException as err:
@@ -264,7 +264,7 @@ class App():
   # password dialog
   #
   def askPassword(self):
-    self.askPassTop = Toplevel(self.mainFrame, bd = 2, relief = "raised")
+    self.askPassTop = Toplevel(self.mainFrame, bd = 2, relief = "raised", cursor = "left_ptr")
     settingsW = 200
     settingsH = 90
     SW = (self.askPassTop.winfo_screenwidth() - settingsW) / 2
@@ -303,7 +303,7 @@ class Settings():
     # hide main window
     #self.parent.withdraw()
 
-    self.window = Toplevel(parent, bd = 2, relief = "raised")
+    self.window = Toplevel(parent, bd = 2, relief = "raised", cursor = "left_ptr")
     settingsW = 300
     settingsH = 200
     SW = (self.window.winfo_screenwidth() - settingsW) / 2
