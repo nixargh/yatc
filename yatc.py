@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-version = "0.2.1"
+__version__ = "0.3.0"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -48,7 +48,7 @@ def checkUser(user, password):
     logging.info("%s failed to authenticate: %s" % (user, auth))
     return False
 
-# check if TCP port 3389 is opened at host
+# check if TCP port 3389 at host is opened
 #
 def checkRDPPort(host):
   try:
@@ -141,6 +141,10 @@ class App():
     self.mainFrame = Frame(self.root, cursor = "left_ptr")
     self.mainFrame.pack(fill = "both", expand = TRUE)
 
+    # version Label
+    versionLabel = Label(self.mainFrame, text = __version__, font = ("Helvetica", 6))
+    versionLabel.pack(side = "bottom", anchor = "e")
+
     # start buttons creation
     self.connectFrame()
     self.systemFrame()
@@ -159,26 +163,47 @@ class App():
     connectFrame = Frame(self.mainFrame, bd = 2, relief = "groove")
     connectFrame.place(x = 50, y = 50, width = 400, height = 150)
 
-    connectButton = Button(connectFrame, text = "Подключиться", anchor = "s", pady = 20, font = "bold", command = self.connectRDP)
-    connectButton.place(x = 50, y = 70, width = 300, height = 65)
+    # Button to start RDP connection
+    self.connectButton = Button(connectFrame, text = "Подключиться", anchor = "s", pady = 20, font = "bold", state = "disabled", command = self.connectRDP)
+    self.connectButton.place(x = 50, y = 70, width = 300, height = 65)
 
+    # Frame to place login and password things
     credFrame = Frame(connectFrame)
     credFrame.place(x = 50, y = 10, width = 300, height = 50)
 
+    # login things
     loginLabel = Label(credFrame, width = 10, text = "Логин:", anchor = "w")
     loginLabel.grid(row = 1, column = 1)
 
-    self.loginEntry = Entry(credFrame, width = 28)
+    self.loginVar = StringVar()
+    self.loginEntry = Entry(credFrame, width = 28, textvariable = self.loginVar)
     self.loginEntry.grid(row = 1, column = 2)
     if self.conf.get("login"):
       self.loginEntry.insert(0, self.conf["login"])
     self.loginEntry.focus_set()
 
+    self.loginVar.trace("w", self.enableConnect)
+
+    # password things
     passwordLabel = Label(credFrame, width = 10, text = "Пароль:", anchor = "w")
     passwordLabel.grid(row = 2, column = 1)
 
-    self.passwordEntry = Entry(credFrame, width = 28, show = '*')
+    self.passwordVar = StringVar()
+    self.passwordEntry = Entry(credFrame, width = 28, show = '*', textvariable = self.passwordVar)
     self.passwordEntry.grid(row = 2, column = 2)
+
+    self.passwordVar.trace("w", self.enableConnect)
+
+  # make connection Button active or disabled
+  #
+  def enableConnect(self, *args):
+    login = self.loginVar.get()
+    password = self.passwordVar.get()
+    if len(login) > 0 and len(password) > 0:
+      self.connectButton.config(state = "active")
+    else:
+      self.connectButton.config(state = "disabled")
+
 
   # Frame with other button at the bottom of window
   #
@@ -286,6 +311,7 @@ class App():
 
     self.askPassEntry = Entry(self.askPassTop, width = 20, show = "*")
     self.askPassEntry.grid(row = 2, column = 1, columnspan = 2)
+    self.askPassEntry.focus_set()
     
     askPassOKButton = Button(self.askPassTop, text = "OK", width = 6, command = self.enterpass, default=ACTIVE)
     askPassOKButton.grid(row = 4, column = 1)
