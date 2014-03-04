@@ -139,10 +139,10 @@ class App():
     
     # create main Frame widget
     self.mainFrame = Frame(self.root, cursor = "left_ptr")
-    self.mainFrame.pack(fill = BOTH, expand = TRUE)
+    self.mainFrame.pack(fill = "both", expand = TRUE)
 
     # start buttons creation
-    self.connectButton()
+    self.connectFrame()
     self.systemFrame()
     
     # bind Enter to start connection
@@ -155,22 +155,26 @@ class App():
   
   # Connection button
   #
-  def connectButton(self):
-    connectButton = Button(self.mainFrame, text = "Подключиться", anchor = "s", pady = 20, font = "bold", command = self.connectRDP)
-    connectButton.place(x = 75, y = 50, width = 350, height = 130)
+  def connectFrame(self):
+    connectFrame = Frame(self.mainFrame, bd = 2, relief = "groove")
+    connectFrame.place(x = 50, y = 50, width = 400, height = 150)
 
-    credFrame = Frame(connectButton)
-    credFrame.place(x = 25, y = 10)
+    connectButton = Button(connectFrame, text = "Подключиться", anchor = "s", pady = 20, font = "bold", command = self.connectRDP)
+    connectButton.place(x = 50, y = 70, width = 300, height = 65)
 
-    loginLabel = Label(credFrame, width = 7, text = "Логин:", anchor = "w")
+    credFrame = Frame(connectFrame)
+    credFrame.place(x = 50, y = 10, width = 300, height = 50)
+
+    loginLabel = Label(credFrame, width = 10, text = "Логин:", anchor = "w")
     loginLabel.grid(row = 1, column = 1)
 
     self.loginEntry = Entry(credFrame, width = 28)
     self.loginEntry.grid(row = 1, column = 2)
     if self.conf.get("login"):
       self.loginEntry.insert(0, self.conf["login"])
+    self.loginEntry.focus_set()
 
-    passwordLabel = Label(credFrame, width = 7, text = "Пароль:", anchor = "w")
+    passwordLabel = Label(credFrame, width = 10, text = "Пароль:", anchor = "w")
     passwordLabel.grid(row = 2, column = 1)
 
     self.passwordEntry = Entry(credFrame, width = 28, show = '*')
@@ -180,7 +184,7 @@ class App():
   #
   def systemFrame(self):
     systemFrame = Frame(self.mainFrame)
-    systemFrame.place(x = 75, y = 250, width = 350 )
+    systemFrame.place(x = 50, y = 250, width = 400 )
 
     rebootButton = Button(systemFrame, width = 10, text = "Перезагрузить", command = self.reboot)
     rebootButton.pack(side = 'right')
@@ -188,7 +192,10 @@ class App():
     shutdownButton = Button(systemFrame, width = 10, text = "Выключить", command = self.shutdown)
     shutdownButton.pack(side = 'right')
 
-    settingsButton = Button(systemFrame, width = 6, text = "Настройки", command = self.settings)
+    #settingsImage = PhotoImage(file = "./images/settings.gif")
+    settingsButton = Button(systemFrame, width = 8, text = "Настройки", command = self.settings)
+    #settingsButton = Button(systemFrame, image = settingsImage, command = self.settings, relief = "flat")
+    #settingsButton.image = settingsImage
     settingsButton.pack(side = 'left')
 
   # command fro RDP connection
@@ -221,15 +228,16 @@ class App():
     if hostOnline:
       # start RDP session by freerdp
       logging.debug("Config before rdp start: %s" % self.conf)
+      # hide root window
+      self.root.withdraw()
       try:
-        # hide root window
-        self.root.withdraw()
         # start freerdp
         call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
-        # show root window
-        self.root.deiconify()
       except BaseException as err:
         logging.error("freerdp connection failed with: " % err)
+
+      # show root window
+      self.root.deiconify()
     else:
       logging.error("All RDP destinations are offline.")
 

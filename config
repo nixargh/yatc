@@ -1,10 +1,8 @@
-screenRes=3840x1080
-domain1=
 domain2=
-domain=test.local
-host1=host1
-host2=host2
-host=localhost
 saveUser=1
-login=user
+domain1=
+login=
+host2=host2
+host1=host1
+screenRes=3840x1080
 admuser=admuser
