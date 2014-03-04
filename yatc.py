@@ -138,7 +138,7 @@ class App():
     self.root.geometry("%dx%d+%d+%d" % (rootW, rootH, SW, SH))
     
     # create main Frame widget
-    self.mainFrame = Frame(self.root, cursor = "arrow")
+    self.mainFrame = Frame(self.root, cursor = "left_ptr")
     self.mainFrame.pack(fill = BOTH, expand = TRUE)
 
     # start buttons creation
@@ -210,24 +210,28 @@ class App():
     # choose avaliable terminal server to connect
     host = self.conf["host1"]
     domain = self.conf["domain1"]
+    hostOnline = True
     if not checkRDPPort(host):
       logging.info("RDP not listening at host1 (%s)" % host)
       host = self.conf["host2"]
       domain = self.conf["domain2"]
       if not checkRDPPort(host):
         logging.info("RDP not listening at host2 (%s)" % host)
-      else:
-        # start RDP session by freerdp
-        logging.debug("Config before rdp start: %s" % self.conf)
-        try:
-          # hide root window
-          self.root.withdraw()
-          # start freerdp
-          call(["xfreerdp", "/printer", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
-          # show root window
-          self.root.deiconify()
-        except BaseException as err:
-          logging.error("freerdp connection failed with: " % err)
+        hostOnline = False
+    if hostOnline:
+      # start RDP session by freerdp
+      logging.debug("Config before rdp start: %s" % self.conf)
+      try:
+        # hide root window
+        self.root.withdraw()
+        # start freerdp
+        call(["xfreerdp", "/printer", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
+        # show root window
+        self.root.deiconify()
+      except BaseException as err:
+        logging.error("freerdp connection failed with: " % err)
+    else:
+      logging.error("All RDP destinations are offline.")
 
     # remove login information from conf dictionary if required
     if self.conf["saveUser"] == 0:
@@ -299,7 +303,7 @@ class Settings():
     # hide main window
     #self.parent.withdraw()
 
-    self.window = Toplevel(parent, bd = 2, relief = "raised", cursor = "right_ptr")
+    self.window = Toplevel(parent, bd = 2, relief = "raised")
     settingsW = 300
     settingsH = 200
     SW = (self.window.winfo_screenwidth() - settingsW) / 2
