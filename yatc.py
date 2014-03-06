@@ -27,6 +27,7 @@ import time
 import logging
 from tkinter import *
 from subprocess import call, check_call, check_output
+from Crypto.Cipher import AES
 ##############################################################################
 ##############################################################################
 # change current directory to script own directory
@@ -71,6 +72,20 @@ def getScreenRes():
 def createLog():
   logging.basicConfig(filename = "yatc.log", level = logging.DEBUG, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
 ##############################################################################
+# Encryption class
+#
+class Crypt():
+  def __init__(self):
+    self.obj = AES.new("1111111111111111", AES.MODE_ECB)
+
+  def encryptString(self, string):
+    print(string)
+    encryptedString = self.obj.encrypt(string)
+    return encryptedString
+
+  def decryptString(self, encryptedString):
+    string = self.obj.decrypt(encryptedString)
+    return str(string)
 
 # Operations with configuration
 #
@@ -441,6 +456,12 @@ logging.info("Starting yatc...")
 # read configuration
 config = Config()
 config.read()
+
+crypt = Crypt()
+cs = crypt.encryptString(sys.argv[1])
+print(len(cs))
+print(cs)
+print(crypt.decryptString(cs).rsplit("="))
 
 # start application
 app = App(config)
