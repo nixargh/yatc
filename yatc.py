@@ -67,6 +67,18 @@ def getScreenRes():
   _, screenW, _, screeH = screenRes.rsplit(" ")
   return int(screenW), int(screeH)
 
+# get user with uid = 1000
+#
+def getAdmuser():
+  file = open("/etc/passwd", "r")
+  for line in file:
+    line = line.rsplit(":")
+    user = line[0]
+    uid = int(line[2])
+    if uid == 1000:
+      return user
+  return False
+
 # Logging
 #
 def createLog():
@@ -79,13 +91,18 @@ class Crypt():
     self.obj = AES.new("1111111111111111", AES.MODE_ECB)
 
   def encryptString(self, string):
-    print(string)
+    string = bytes(string, "utf-8") 
+    length = 16 - (len(string) % 16)
+    string = string + bytes([length])*length
     encryptedString = self.obj.encrypt(string)
-    return encryptedString
+    print(encryptedString)
+    return encryptedString.decode(encoding = "UTF-8")
 
   def decryptString(self, encryptedString):
+    encryptedString = bytes(encryptedString, "utf-8")
     string = self.obj.decrypt(encryptedString)
-    return str(string)
+    string = string[:-string[-1]]
+    return str(string, "utf-8")
 
 # Operations with configuration
 #
@@ -93,15 +110,25 @@ class Config():
   def __init__(self):
     self.configFile = "config"
     self.config = {}
+    self.crypt = Crypt()
     logging.info("Config initialized.")
+
+  def createConfig(self):
+    file = open(self.configFile, "w")
+    string = self.crypt.encryptString("admuser=%s" % getAdmuser())
+    file.write(string + "\n")
+    file.close()
 
   # read config from file
   #
   def read(self):
+    if not os.path.isfile(self.configFile):
+      self.createConfig()
     file = open(self.configFile, "r")
     conf = {} 
     for line in file:
-      line = line.rstrip("\r\n")
+      cryptedLine = line.rstrip("\r\n")
+      line = self.crypt.decryptString(cryptedLine)
       attr, value = line.rsplit("=")
       conf[attr] = value
     file.close()
@@ -119,7 +146,9 @@ class Config():
     # write settings to file
     file = open(self.configFile, "w")
     for attr, value in config.items():
-      file.write("%s=%s\n" % (attr, value))
+      string = "%s=%s" % (attr, value)
+      cryptedLine = self.crypt.encryptString(string)
+      file.write(cryptedLine + "\n")
     file.close() 
     logging.info("Configuration wrote.")
 
@@ -456,12 +485,6 @@ logging.info("Starting yatc...")
 # read configuration
 config = Config()
 config.read()
-
-crypt = Crypt()
-cs = crypt.encryptString(sys.argv[1])
-print(len(cs))
-print(cs)
-print(crypt.decryptString(cs).rsplit("="))
 
 # start application
 app = App(config)
