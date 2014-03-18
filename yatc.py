@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -27,7 +27,7 @@ import time
 import logging
 from tkinter import *
 from subprocess import call, check_call, check_output
-from Crypto.Cipher import AES
+from simplecrypt import encrypt, decrypt
 ##############################################################################
 ##############################################################################
 # change current directory to script own directory
@@ -88,21 +88,14 @@ def createLog():
 #
 class Crypt():
   def __init__(self):
-    self.obj = AES.new("1111111111111111", AES.MODE_ECB)
+    self.passpharase = "VerySecurePassphrase"
+    logging.info("Encryption initialisez.")
 
   def encryptString(self, string):
-    string = bytes(string, "utf-8") 
-    length = 16 - (len(string) % 16)
-    string = string + bytes([length])*length
-    encryptedString = self.obj.encrypt(string)
-    print(encryptedString)
-    return encryptedString.decode(encoding = "UTF-8")
+    return encrypt(self.passpharase, string)
 
   def decryptString(self, encryptedString):
-    encryptedString = bytes(encryptedString, "utf-8")
-    string = self.obj.decrypt(encryptedString)
-    string = string[:-string[-1]]
-    return str(string, "utf-8")
+    return decrypt(self.passpharase, encryptedString).decode('utf-8')
 
 # Operations with configuration
 #
@@ -114,9 +107,9 @@ class Config():
     logging.info("Config initialized.")
 
   def createConfig(self):
-    file = open(self.configFile, "w")
-    string = self.crypt.encryptString("admuser=%s" % getAdmuser())
-    file.write(string + "\n")
+    file = open(self.configFile, "wb")
+    string = self.crypt.encryptString("admuser=%s\n" % getAdmuser())
+    file.write(string)
     file.close()
 
   # read config from file
@@ -124,13 +117,15 @@ class Config():
   def read(self):
     if not os.path.isfile(self.configFile):
       self.createConfig()
-    file = open(self.configFile, "r")
+    file = open(self.configFile, "rb")
     conf = {} 
-    for line in file:
-      cryptedLine = line.rstrip("\r\n")
-      line = self.crypt.decryptString(cryptedLine)
-      attr, value = line.rsplit("=")
-      conf[attr] = value
+    cryptedInfo = file.readline()
+    info = self.crypt.decryptString(cryptedInfo)
+    settings = info.rsplit("\n")
+    for line in settings:
+      if len(line) > 0:
+        attr, value = line.rsplit("=")
+        conf[attr] = value
     file.close()
     logging.info("Configuration read.")
     logging.debug(conf)
@@ -140,15 +135,18 @@ class Config():
   #
   def write(self, config):
     # don't save user if this option unchecked
-    if config["saveUser"] == 0:
-      del config["login"]
+    if config.get("login"):
+      if config["saveUser"] == 0:
+        del config["login"]
 
-    # write settings to file
-    file = open(self.configFile, "w")
+    # create settings string
+    string = ""
     for attr, value in config.items():
-      string = "%s=%s" % (attr, value)
-      cryptedLine = self.crypt.encryptString(string)
-      file.write(cryptedLine + "\n")
+      string = string + ("%s=%s\n" % (attr, value))
+    cryptedLine = self.crypt.encryptString(string)
+    # write settings to file
+    file = open(self.configFile, "wb")
+    file.write(cryptedLine)
     file.close() 
     logging.info("Configuration wrote.")
 
@@ -449,8 +447,9 @@ class Settings():
     self.saveUser = IntVar()
     saveUserCheckbutton = Checkbutton(settingsFrame, variable = self.saveUser)
     saveUserCheckbutton.grid(row = 5, column = 3)
-    if int(self.conf.get("saveUser")) == 1:
-      saveUserCheckbutton.select()
+    if self.conf.get("saveUser"):
+      if int(self.conf.get("saveUser")) == 1:
+        saveUserCheckbutton.select()
     
     # show screen resolution at settings screen
     screenResLabel = Label(settingsFrame, text = "Разрешение экрана:", anchor = "w", width = 20)

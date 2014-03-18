@@ -18,7 +18,11 @@ apt-get install -y build-essential git-core cmake libssl-dev libx11-dev libxext-
 libxcursor-dev libxdamage-dev libxv-dev libxkbfile-dev libasound2-dev libcups2-dev libxml2 libxml2-dev \
 libxrandr-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev
 
+DATE1=`date +%s%N`
+
 cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_SSE2=ON -DWITH_CUPS=ON -DCHANNEL_PRINTER=ON .
+
+DATE2=`date +%s%N`
 
 make
 make install
@@ -43,15 +47,23 @@ sed -i {s/PermitRootLogin yes/PermitRootLogin no/} $SSHD_CONF
 echo -e "AllowGroups\tssh_users" >> $SSHD_CONF
 service ssh restart
 
-# install python module for pam authentication
+# install python library for pam authentication
 cd /tmp
 git clone https://github.com/leonnnn/python3-simplepam.git
 cd ./python3-simplepam
 python3 setup.py install
 
+# install python library for simple encryption and decryption
+cd /tmp
+git clone https://github.com/andrewcooke/simple-crypt.git
+cd ./simple-crypt/
+python3 ./setup.py install
+
 # install YATC
 cd /home/$USER
 git clone https://github.com/nixargh/yatc.git
+cd ./yatc
+sed -i {s/VerySecurePassphrase/$DATE1$DATE2/} ./yatc.py
 
 # make user autologin
 # http://blog.shvetsov.com/2010/09/auto-login-ubuntu-user-from-cli.html
