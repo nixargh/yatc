@@ -1,9 +1,20 @@
 #!/bin/bash
-# must be executed from root
+# script to deploy YATC on Ubuntu 12.04 (netinstall with only ssh installed)
+# (*w) author: nixargh <nixargh@gmail.com>
+# version 0.1
 ##### Settings ################################################################
+# !!! must be executed from root !!!
 USER=user
-ADM_USER=admuser
 ###############################################################################
+
+# check that you are root
+if [ $USER != "root" ]; then
+  echo "You must be root."
+  exit 1
+fi
+
+# detect admuser
+ADM_USER=`grep 1000 /etc/passwd |awk 'BEGIN{FS=":"} {print $1}'`
 
 # install packages
 apt-get update
@@ -63,7 +74,10 @@ python3 ./setup.py install
 cd /home/$USER
 git clone https://github.com/nixargh/yatc.git
 cd ./yatc
-sed -i {s/VerySecurePassphrase/$DATE1$DATE2/} ./yatc.py
+sed -i {s/VerySecurePassphrase/$RANDOM$DATE1$RANDOM$DATE2/} ./yatc.py
+python3 -mpy_compile ./yatc.py
+mv ./__pycache__/yatc.*.pyc /usr/local/bin/yatc
+chmod 755 /usr/local/bin/yatc
 
 # make user autologin
 # http://blog.shvetsov.com/2010/09/auto-login-ubuntu-user-from-cli.html
@@ -82,7 +96,7 @@ echo ". startx" > $BASH_PROFILE
 
 # /home/user/.xinitrc
 XINITRC=/home/$USER/.xinitrc
-echo "./yatc/yatc.py  -- -depth 16" > $XINITRC
+echo "yatc -- -depth 32" > $XINITRC
 
 # fix onership
 chown $USER:$USER -R /home/$USER
