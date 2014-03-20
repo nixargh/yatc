@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -29,6 +29,7 @@ from tkinter import *
 from subprocess import call, check_call, check_output
 from simplecrypt import encrypt, decrypt
 ##############################################################################
+logFile = os.path.expanduser("~/yatc.log")
 ##############################################################################
 # change current directory to script own directory
 #
@@ -82,14 +83,14 @@ def getAdmuser():
 # Logging
 #
 def createLog():
-  logging.basicConfig(filename = "yatc.log", level = logging.DEBUG, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
+  logging.basicConfig(filename = logFile, level = logging.DEBUG, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
 ##############################################################################
 # Encryption class
 #
 class Crypt():
   def __init__(self):
     self.passpharase = "VerySecurePassphrase"
-    logging.info("Encryption initialisez.")
+    logging.info("Encryption initialised.")
 
   def encryptString(self, string):
     return encrypt(self.passpharase, string)
@@ -133,15 +134,15 @@ class Config():
 
   # write config to file
   #
-  def write(self, config):
+  def write(self):
     # don't save user if this option unchecked
-    if config.get("login"):
-      if config["saveUser"] == 0:
-        del config["login"]
+    if self.config.get("login"):
+      if self.config["saveUser"] == 0:
+        del self.config["login"]
 
     # create settings string
     string = ""
-    for attr, value in config.items():
+    for attr, value in self.config.items():
       string = string + ("%s=%s\n" % (attr, value))
     cryptedLine = self.crypt.encryptString(string)
     # write settings to file
@@ -154,6 +155,9 @@ class Config():
   #
   def get(self):
     return self.config
+
+  def put(self, config):
+    self.config = config
 
 # Main apllication window
 #
@@ -273,10 +277,6 @@ class App():
     # get user login
     self.conf["login"] = self.loginEntry.get()
 
-    # save config to save login if option enabled
-    if int(self.conf["saveUser"]) == 1:
-      self.config.write(self.conf)
-
     # get user password and clear Entry
     password = self.passwordEntry.get()
     self.passwordEntry.delete(0, END)
@@ -284,11 +284,11 @@ class App():
     # choose avaliable terminal server to connect
     host = self.conf["host1"]
     domain = self.conf["domain1"]
-    rfx = ""
+    rfx = False
     if self.conf.get("rfx"):
       if self.conf["rfx"]:
         logging.debug("RemoteFX enabled.")
-        rfx = "/rfx"
+        rfx = True
 
     hostOnline = True
     if not checkRDPPort(host):
@@ -305,7 +305,10 @@ class App():
       self.root.withdraw()
       try:
         # start freerdp
-        call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:16", rfx, "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
+        if rfx:
+          call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
+        else:
+          call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:16", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
       except BaseException as err:
         logging.error("freerdp connection failed with: " % err)
 
@@ -319,7 +322,10 @@ class App():
       self.loginEntry.delete(0, END)
       if self.conf.get("login"):
         del self.conf["login"]
-
+    else:
+      # return and wtite config
+      self.config.put(self.conf)
+      self.config.write
 
   # command for reboot
   #
@@ -340,7 +346,7 @@ class App():
     if self.password:
       if checkUser(self.conf["admuser"], self.password):
         self.password = None
-        settings = Settings(self.root, self.conf)
+        settings = Settings(self.root, self.config)
         
   # password dialog
   #
@@ -378,8 +384,8 @@ class App():
 # Settings window
 #
 class Settings():
-  def __init__(self, parent, conf):
-    self.conf = conf
+  def __init__(self, parent, config):
+    self.conf = config.get()
     self.parent = parent
 
     # hide main window
@@ -486,8 +492,9 @@ class Settings():
     self.conf["domain2"] = self.domain2()
     self.conf["saveUser"] = self.saveUser.get()
     self.conf["rfx"] = self.rfx.get()
-    config = Config()
-    config.write(self.conf)
+    #config = Config()
+    config.put(self.conf)
+    config.write()
     self.window.destroy()
     #self.parent.deiconify()
 
