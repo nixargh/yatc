@@ -101,7 +101,7 @@ class Crypt():
 #
 class Config():
   def __init__(self):
-    self.configFile = "config"
+    self.configFile = os.path.expanduser("~/.config/yatc")
     self.config = {}
     self.crypt = Crypt()
     logging.info("Config initialized.")
@@ -284,6 +284,12 @@ class App():
     # choose avaliable terminal server to connect
     host = self.conf["host1"]
     domain = self.conf["domain1"]
+    rfx = ""
+    if self.conf.get("rfx"):
+      if self.conf["rfx"]:
+        logging.debug("RemoteFX enabled.")
+        rfx = "/rfx"
+
     hostOnline = True
     if not checkRDPPort(host):
       logging.info("RDP not listening at host1 (%s)" % host)
@@ -299,7 +305,7 @@ class App():
       self.root.withdraw()
       try:
         # start freerdp
-        call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
+        call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:16", rfx, "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
       except BaseException as err:
         logging.error("freerdp connection failed with: " % err)
 
@@ -451,12 +457,23 @@ class Settings():
       if int(self.conf.get("saveUser")) == 1:
         saveUserCheckbutton.select()
     
+    # Check box to enable/disable RemoteFX 
+    rfxLabel = Label(settingsFrame, text = "Использовать RemoteFX:", anchor = "w", width = 20)
+    rfxLabel.grid(row = 6, column = 1, columnspan = 2)
+
+    self.rfx = IntVar()
+    rfxCheckbutton = Checkbutton(settingsFrame, variable = self.rfx)
+    rfxCheckbutton.grid(row = 6, column = 3)
+    if self.conf.get("rfx"):
+      if int(self.conf.get("rfx")) == 1:
+        rfxCheckbutton.select()
+
     # show screen resolution at settings screen
     screenResLabel = Label(settingsFrame, text = "Разрешение экрана:", anchor = "w", width = 20)
-    screenResLabel.grid(row = 6, column = 1, columnspan = 2)
+    screenResLabel.grid(row = 7, column = 1, columnspan = 2)
 
     screenResEntry = Entry(settingsFrame, width = 10)
-    screenResEntry.grid(row = 6, column = 3, columnspan = 1)
+    screenResEntry.grid(row = 7, column = 3, columnspan = 1)
     screenResEntry.insert(0, self.conf["screenRes"])
     screenResEntry.config(state = "readonly")
 
@@ -468,6 +485,7 @@ class Settings():
     self.conf["host2"] = self.host2()
     self.conf["domain2"] = self.domain2()
     self.conf["saveUser"] = self.saveUser.get()
+    self.conf["rfx"] = self.rfx.get()
     config = Config()
     config.write(self.conf)
     self.window.destroy()
