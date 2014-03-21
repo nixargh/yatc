@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -120,7 +120,7 @@ class Config():
       self.createConfig()
     file = open(self.configFile, "rb")
     conf = {} 
-    cryptedInfo = file.readline()
+    cryptedInfo = file.read()
     info = self.crypt.decryptString(cryptedInfo)
     settings = info.rsplit("\n")
     for line in settings:
@@ -151,12 +151,16 @@ class Config():
     file.close() 
     logging.info("Configuration wrote.")
 
-  # return config value
+  # get current configuration
   #
   def get(self):
+    logging.debug("Configuration is obtained.")
     return self.config
 
+  # put changed configuration
+  #
   def put(self, config):
+    logging.debug("Configuration is updated.")
     self.config = config
 
 # Main apllication window
@@ -323,9 +327,9 @@ class App():
       if self.conf.get("login"):
         del self.conf["login"]
     else:
-      # return and wtite config
+      # return and write config
       self.config.put(self.conf)
-      self.config.write
+      self.config.write()
 
   # command for reboot
   #
