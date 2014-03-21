@@ -18,7 +18,7 @@ ADM_USER=`grep 1000 /etc/passwd |awk 'BEGIN{FS=":"} {print $1}'`
 
 # install packages
 apt-get update
-apt-get install -y python3 git xorg python3-tk vim cups puppet
+apt-get install -y python3 git xorg python3-tk vim cups puppet usbmount
 
 # install FreeRDP from git
 cd /tmp
