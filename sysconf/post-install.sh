@@ -1,10 +1,11 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 (netinstall with only ssh installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-# version 0.1
+# version 0.2
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 USER=user
+TIMEZONE="Europe/Moscow"
 ###############################################################################
 
 # check that you are root
@@ -13,21 +14,25 @@ if [ $USER != "root" ]; then
   exit 1
 fi
 
+# set timezone
+cp -f /usr/share/zoneinfo/$TIMEZONE /etc/localtime
+
 # detect admuser
 ADM_USER=`grep 1000 /etc/passwd |awk 'BEGIN{FS=":"} {print $1}'`
 
-# install packages
+# install required packages
 apt-get update
 apt-get install -y python3 git xorg python3-tk vim cups puppet
 
 # install FreeRDP from git
-cd /tmp
-git clone git://github.com/FreeRDP/FreeRDP.git
-cd ./FreeRDP
-
 apt-get install -y build-essential git-core cmake libssl-dev libx11-dev libxext-dev libxinerama-dev \
 libxcursor-dev libxdamage-dev libxv-dev libxkbfile-dev libasound2-dev libcups2-dev libxml2 libxml2-dev \
 libxrandr-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev
+
+cd /tmp
+git clone git://github.com/FreeRDP/FreeRDP.git
+cd ./FreeRDP
+git checkout stable-1.1
 
 DATE1=`date +%s%N`
 
@@ -74,6 +79,7 @@ python3 ./setup.py install
 cd /home/$USER
 git clone https://github.com/nixargh/yatc.git
 cd ./yatc
+git checkout paranoic
 sed -i {s/VerySecurePassphrase/$RANDOM$DATE1$RANDOM$DATE2/} ./yatc.py
 python3 -mpy_compile ./yatc.py
 mv ./__pycache__/yatc.*.pyc /usr/local/bin/yatc
@@ -89,8 +95,6 @@ echo "exec /bin/login -f $USER < /dev/tty1 > /dev/tty1 2>&1" >> $TTY_CONF
 echo -e "$USER\tALL=(root) NOPASSWD:/sbin/reboot,/sbin/poweroff\n" >> /etc/sudoers
 
 # setup X and application to start on boot at terminal
-#
-# /home/user/.bash_profile
 BASH_PROFILE=/home/$USER/.bash_profile
 echo ". startx" > $BASH_PROFILE
 

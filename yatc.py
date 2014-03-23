@@ -310,9 +310,9 @@ class App():
       try:
         # start freerdp
         if rfx:
-          call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:16", "/rfx", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
+          call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:32", "/rfx", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
         else:
-          call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:16", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
+          call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:32", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
       except BaseException as err:
         logging.error("freerdp connection failed with: " % err)
 
