@@ -1,7 +1,7 @@
 #!/bin/bash
-# script to deploy YATC on Ubuntu 12.04 (netinstall with only ssh installed)
+# script to deploy YATC on Ubuntu 13.10 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-# version 0.2
+# version 0.4
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER=user
@@ -78,14 +78,15 @@ cd ./simple-crypt/
 python3 setup.py install
 
 # install YATC
-cd /home/$RDPUSER
+YATCBIN=/usr/local/bin/yatc
+cd /tmp
 git clone https://github.com/nixargh/yatc.git
 cd ./yatc
 git checkout paranoic
 sed -i {s/VerySecurePassphrase/$RANDOM$DATE1$RANDOM$DATE2/} ./yatc.py
 python3 -mpy_compile ./yatc.py
-mv ./__pycache__/yatc.*.pyc /usr/local/bin/yatc
-chmod 755 /usr/local/bin/yatc
+mv ./__pycache__/yatc.*.pyc $YATCBIN
+chmod 755 $YATCBIN
 
 # make user autologin
 # http://blog.shvetsov.com/2010/09/auto-login-ubuntu-user-from-cli.html
@@ -102,7 +103,7 @@ echo ". startx" > $BASH_PROFILE
 
 # /home/user/.xinitrc
 XINITRC=/home/$RDPUSER/.xinitrc
-echo "yatc -- -depth 32" > $XINITRC
+echo "python3 $YATCBIN -- -depth 32" > $XINITRC
 
 # fix onership
 chown $RDPUSER:$RDPUSER -R /home/$RDPUSER
@@ -115,3 +116,5 @@ awk '/\/Location/ {print "  Allow from 10.0.*"; print; next }1' $CUPSD_CONF.orig
 sed -i {s/127.0.0.1/0.0.0.0/} $CUPSD_CONF
 sed -i {s/localhost/0.0.0.0/} $CUPSD_CONF
 service cups restart
+
+exit 0
