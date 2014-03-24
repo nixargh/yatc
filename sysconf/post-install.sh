@@ -4,7 +4,7 @@
 # version 0.2
 ##### Settings ################################################################
 # !!! must be executed from root !!!
-USER=user
+RDPUSER=user
 TIMEZONE="Europe/Moscow"
 ###############################################################################
 
@@ -22,12 +22,12 @@ ADM_USER=`grep 1000 /etc/passwd |awk 'BEGIN{FS=":"} {print $1}'`
 
 # install required packages
 apt-get update
-apt-get install -y python3 git xorg python3-tk vim cups puppet usbmount
+apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet usbmount
 
 # install FreeRDP from git
 apt-get install -y build-essential git-core cmake libssl-dev libx11-dev libxext-dev libxinerama-dev \
 libxcursor-dev libxdamage-dev libxv-dev libxkbfile-dev libasound2-dev libcups2-dev libxml2 libxml2-dev \
-libxrandr-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev
+libxrandr-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libxi-dev libavcodec-dev
 
 cd /tmp
 git clone git://github.com/FreeRDP/FreeRDP.git
@@ -46,10 +46,12 @@ make install
 echo "/usr/local/lib/freerdp" > /etc/ld.so.conf.d/freerdp.conf
 ldconfig
 
-mkdir /home/$USER/.config
 
 # create user
-useradd -m -U -c "RDP User" -G shadow -s /bin/bash $USER
+useradd -m -U -c "RDP User" -G shadow -s /bin/bash $RDPUSER
+
+# create user config directory
+mkdir /home/$RDPUSER/.config
 
 # add group for ssh access
 groupadd ssh_users
@@ -73,10 +75,10 @@ python3 setup.py install
 cd /tmp
 git clone https://github.com/andrewcooke/simple-crypt.git
 cd ./simple-crypt/
-python3 ./setup.py install
+python3 setup.py install
 
 # install YATC
-cd /home/$USER
+cd /home/$RDPUSER
 git clone https://github.com/nixargh/yatc.git
 cd ./yatc
 git checkout paranoic
@@ -89,21 +91,21 @@ chmod 755 /usr/local/bin/yatc
 # http://blog.shvetsov.com/2010/09/auto-login-ubuntu-user-from-cli.html
 TTY_CONF=/etc/init/tty1.conf
 sed -i {s/exec/\#exec/} $TTY_CONF 
-echo "exec /bin/login -f $USER < /dev/tty1 > /dev/tty1 2>&1" >> $TTY_CONF
+echo "exec /bin/login -f $RDPUSER < /dev/tty1 > /dev/tty1 2>&1" >> $TTY_CONF
 
 # add some rights to user
-echo -e "$USER\tALL=(root) NOPASSWD:/sbin/reboot,/sbin/poweroff\n" >> /etc/sudoers
+echo -e "$RDPUSER\tALL=(root) NOPASSWD:/sbin/reboot,/sbin/poweroff\n" >> /etc/sudoers
 
 # setup X and application to start on boot at terminal
-BASH_PROFILE=/home/$USER/.bash_profile
+BASH_PROFILE=/home/$RDPUSER/.bash_profile
 echo ". startx" > $BASH_PROFILE
 
 # /home/user/.xinitrc
-XINITRC=/home/$USER/.xinitrc
+XINITRC=/home/$RDPUSER/.xinitrc
 echo "yatc -- -depth 32" > $XINITRC
 
 # fix onership
-chown $USER:$USER -R /home/$USER
+chown $RDPUSER:$RDPUSER -R /home/$RDPUSER
 
 # set cupsd to listen on all interfaces
 # and allow access from subnet
