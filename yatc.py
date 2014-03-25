@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -30,7 +30,7 @@ from subprocess import call, check_call, check_output
 from simplecrypt import encrypt, decrypt
 ##############################################################################
 logFile = os.path.expanduser("~/yatc.log")
-mediaMountDir = "/media"
+#mediaMountDir = "/media"
 ##############################################################################
 # change current directory to script own directory
 #
@@ -81,25 +81,25 @@ def getAdmuser():
       return user
   return False
 
-# get list of USB storage devices mounted inside /media
+## get list of USB storage devices mounted inside /media
+##
+#def getUSBList():
+#  USBList = []
+#  for entry in os.listdir(mediaMountDir):
+#    dir = os.path.join(mediaMountDir, entry)
+#    if os.path.isdir(dir):
+#      USBList.append(dir)
+#  return USBList
 #
-def getUSBList():
-  USBList = []
-  for entry in os.listdir(mediaMountDir):
-    dir = os.path.join(mediaMountDir, entry)
-    if os.path.isdir(dir):
-      USBList.append(dir)
-  return USBList
-
-
-# create xfreerdp formated list of disks to redirect
 #
-def diskList():
-  disksString = ''
-  USBList = getUSBList()
-  for usbd in USBList:
-    disksString = disksString + ',' + os.path.basename(usbd) + ',' + usbd
-  return disksString
+## create xfreerdp formated list of disks to redirect
+##
+#def diskList():
+#  disksString = ''
+#  USBList = getUSBList()
+#  for usbd in USBList:
+#    disksString = disksString + ',' + os.path.basename(usbd) + ',' + usbd
+#  return disksString
 
 # Logging
 #
@@ -306,41 +306,8 @@ class App():
     password = self.passwordEntry.get()
     self.passwordEntry.delete(0, END)
 
-    # choose avaliable terminal server to connect
-    host = self.conf["host1"]
-    domain = self.conf["domain1"]
-    rfx = False
-    if self.conf.get("rfx"):
-      if self.conf["rfx"]:
-        logging.debug("RemoteFX enabled.")
-        rfx = True
-
-    hostOnline = True
-    if not checkRDPPort(host):
-      logging.info("RDP not listening at host1 (%s)" % host)
-      host = self.conf["host2"]
-      domain = self.conf["domain2"]
-      if not checkRDPPort(host):
-        logging.info("RDP not listening at host2 (%s)" % host)
-        hostOnline = False
-    if hostOnline:
-      # start RDP session by freerdp
-      logging.debug("Config before rdp start: %s" % self.conf)
-      # hide root window
-      self.root.withdraw()
-      try:
-        # start freerdp
-        if rfx:
-          call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:32", "/rfx", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
-        else:
-          call(["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:32", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/d:" + domain, "/u:" + self.conf["login"], "/p:" + password, "/v:" + host])
-      except BaseException as err:
-        logging.error("freerdp connection failed with: " % err)
-
-      # show root window
-      self.root.deiconify()
-    else:
-      logging.error("All RDP destinations are offline.")
+    # create List of arguments for system call
+    xfreerdp = ["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:32", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/u:" + self.conf["login"], "/p:" + password]
 
     # remove login information from conf dictionary if required
     if self.conf["saveUser"] == 0:
@@ -351,6 +318,51 @@ class App():
       # return and write config
       self.config.put(self.conf)
       self.config.write()
+
+    # check if we need to use RemoteFX
+    if self.conf.get("rfx"):
+      if int(self.conf["rfx"]) == 1:
+        logging.debug("RemoteFX enabled.")
+        xfreerdp.append("/rfx")
+
+    # check if we need to redirect USB storage device
+    if self.conf.get("usb"):
+      if int(self.conf["usb"]) == 1:
+        logging.debug("USB storage device redirection enabled.")
+        xfreerdp.append("/drive:usbdisk,/media/usb")
+
+    # choose avaliable terminal server to connect
+    host = self.conf["host1"]
+    domain = self.conf["domain1"]
+
+    hostOnline = True
+    if not checkRDPPort(host):
+      logging.info("RDP not listening at host1 (%s)" % host)
+      host = self.conf["host2"]
+      domain = self.conf["domain2"]
+      if not checkRDPPort(host):
+        logging.info("RDP not listening at host2 (%s)" % host)
+        hostOnline = False
+
+    xfreerdp.append("/v:%s" % host)
+    xfreerdp.append("/d:%s" % domain)
+
+    if hostOnline:
+      # start RDP session by freerdp
+      logging.debug("Config before rdp start: %s" % self.conf)
+      # hide root window
+      self.root.withdraw()
+      try:
+        # start freerdp
+        call(xfreerdp)
+      except BaseException as err:
+        logging.error("freerdp connection failed with: " % err)
+
+      # show root window
+      self.root.deiconify()
+    else:
+      logging.error("All RDP destinations are offline.")
+
 
   # command for reboot
   #
@@ -441,7 +453,7 @@ class Settings():
     host1Label = Label(settingsFrame, text = "Сервер 1:", anchor = "w", width = 10)
     host1Label.grid(row = 1, column = 1)
 
-    host1Entry = Entry(settingsFrame, width = 20)
+    host1Entry = Entry(settingsFrame, width = 25)
     host1Entry.grid(row = 1, column = 2, columnspan = 2)
     if self.conf.get("host1"):
       host1Entry.insert(0, self.conf["host1"])
@@ -451,7 +463,7 @@ class Settings():
     host2Label = Label(settingsFrame, text = "Сервер 2:", anchor = "w", width = 10)
     host2Label.grid(row = 2, column = 1)
 
-    host2Entry = Entry(settingsFrame, width = 20)
+    host2Entry = Entry(settingsFrame, width = 25)
     host2Entry.grid(row = 2, column = 2, columnspan = 2)
     if self.conf.get("host2"):
       host2Entry.insert(0, self.conf["host2"])
@@ -461,7 +473,7 @@ class Settings():
     domain1Label = Label(settingsFrame, text = "Домен 1:", anchor = "w", width = 10)
     domain1Label.grid(row = 3, column = 1)
 
-    domain1Entry = Entry(settingsFrame, width = 20)
+    domain1Entry = Entry(settingsFrame, width = 25)
     domain1Entry.grid(row = 3, column = 2, columnspan = 2)
     if self.conf.get("domain1"):
       domain1Entry.insert(0, self.conf["domain1"])
@@ -471,14 +483,14 @@ class Settings():
     domain2Label = Label(settingsFrame, text = "Домен 2:", anchor = "w", width = 10)
     domain2Label.grid(row = 4, column = 1)
 
-    domain2Entry = Entry(settingsFrame, width = 20)
+    domain2Entry = Entry(settingsFrame, width = 25)
     domain2Entry.grid(row = 4, column = 2, columnspan = 2)
     if self.conf.get("domain2"):
       domain2Entry.insert(0, self.conf["domain2"])
     self.domain2 = domain2Entry.get
 
     # Check box to save login for future sessions
-    saveUserLabel = Label(settingsFrame, text = "Запоминать логин:", anchor = "w", width = 20)
+    saveUserLabel = Label(settingsFrame, text = "Запоминать логин:", anchor = "w", width = 25)
     saveUserLabel.grid(row = 5, column = 1, columnspan = 2)
 
     self.saveUser = IntVar()
@@ -489,7 +501,7 @@ class Settings():
         saveUserCheckbutton.select()
     
     # Check box to enable/disable RemoteFX 
-    rfxLabel = Label(settingsFrame, text = "Использовать RemoteFX:", anchor = "w", width = 20)
+    rfxLabel = Label(settingsFrame, text = "Использовать RemoteFX:", anchor = "w", width = 25)
     rfxLabel.grid(row = 6, column = 1, columnspan = 2)
 
     self.rfx = IntVar()
@@ -499,12 +511,23 @@ class Settings():
       if int(self.conf.get("rfx")) == 1:
         rfxCheckbutton.select()
 
+    # Check box to enable/disable USB storage redirect 
+    usbLabel = Label(settingsFrame, text = "Пробросить USB накопитель:", anchor = "w", width = 25)
+    usbLabel.grid(row = 7, column = 1, columnspan = 2)
+
+    self.usb = IntVar()
+    usbCheckbutton = Checkbutton(settingsFrame, variable = self.usb)
+    usbCheckbutton.grid(row = 7, column = 3)
+    if self.conf.get("usb"):
+      if int(self.conf.get("usb")) == 1:
+        usbCheckbutton.select()
+
     # show screen resolution at settings screen
-    screenResLabel = Label(settingsFrame, text = "Разрешение экрана:", anchor = "w", width = 20)
-    screenResLabel.grid(row = 7, column = 1, columnspan = 2)
+    screenResLabel = Label(settingsFrame, text = "Разрешение экрана:", anchor = "w", width = 25)
+    screenResLabel.grid(row = 8, column = 1, columnspan = 2)
 
     screenResEntry = Entry(settingsFrame, width = 10)
-    screenResEntry.grid(row = 7, column = 3, columnspan = 1)
+    screenResEntry.grid(row = 8, column = 3, columnspan = 1)
     screenResEntry.insert(0, self.conf["screenRes"])
     screenResEntry.config(state = "readonly")
 
@@ -517,7 +540,7 @@ class Settings():
     self.conf["domain2"] = self.domain2()
     self.conf["saveUser"] = self.saveUser.get()
     self.conf["rfx"] = self.rfx.get()
-    #config = Config()
+    self.conf["usb"] = self.usb.get()
     config.put(self.conf)
     config.write()
     self.window.destroy()
@@ -534,8 +557,6 @@ logging.info("Starting yatc...")
 # read configuration
 config = Config()
 config.read()
-
-print(diskList())
 
 # start application
 app = App(config)
