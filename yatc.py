@@ -30,6 +30,7 @@ from subprocess import call, check_call, check_output
 from simplecrypt import encrypt, decrypt
 ##############################################################################
 logFile = os.path.expanduser("~/yatc.log")
+mediaMountDir = "/media"
 ##############################################################################
 # change current directory to script own directory
 #
@@ -79,6 +80,26 @@ def getAdmuser():
     if uid == 1000:
       return user
   return False
+
+# get list of USB storage devices mounted inside /media
+#
+def getUSBList():
+  USBList = []
+  for entry in os.listdir(mediaMountDir):
+    dir = os.path.join(mediaMountDir, entry)
+    if os.path.isdir(dir):
+      USBList.append(dir)
+  return USBList
+
+
+# create xfreerdp formated list of disks to redirect
+#
+def diskList():
+  disksString = ''
+  USBList = getUSBList()
+  for usbd in USBList:
+    disksString = disksString + ',' + os.path.basename(usbd) + ',' + usbd
+  return disksString
 
 # Logging
 #
@@ -513,6 +534,8 @@ logging.info("Starting yatc...")
 # read configuration
 config = Config()
 config.read()
+
+print(diskList())
 
 # start application
 app = App(config)
