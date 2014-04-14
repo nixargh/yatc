@@ -45,7 +45,7 @@ def checkUser(user, password):
   from simplepam import authenticate
   auth = authenticate(user, password)
   if auth:
-    logging.info("%s authenticated" % user)
+    logging.info("%s authenticated." % user)
     return True
   else:
     logging.info("%s failed to authenticate: %s" % (user, auth))
@@ -104,7 +104,7 @@ def getAdmuser():
 # Logging
 #
 def createLog():
-  logging.basicConfig(filename = logFile, level = logging.DEBUG, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
+  logging.basicConfig(filename = logFile, level = logging.INFO, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
 ##############################################################################
 # Encryption class
 #
