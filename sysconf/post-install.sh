@@ -123,4 +123,7 @@ USBM_CONF=/etc/usbmount/usbmount.conf
 sed -i {s/"FILESYSTEMS=\"fuseblk vfat ext2 ext3 ext4 hfsplus\""/"FILESYSTEMS=\"ntfs vfat ext2 ext3 ext4 hfsplus\""/} $USBM_CONF
 sed -i {s/"FS_MOUNTOPTIONS=\"\""/"FS_MOUNTOPTIONS=\"-fstype=fuseblk,uid=$RDPUSER,gid=$RDPUSER -fstype=ntfs,uid=$RDPUSER,gid=$RDPUSER -fstype=vfat,uid=$RDPUSER,gid=$RDPUSER -fstype=ext2,uid=$RDPUSER,gid=$RDPUSER -fstype=ext3,uid=$RDPUSER,gid=$RDPUSER -fstype=ext4,uid=$RDPUSER,gid=$RDPUSER"\"/} $USBM_CONF
 
+# enable puppet
+puppet agent --enable
+
 reboot
