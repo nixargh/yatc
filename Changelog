@@ -3,4 +3,4 @@ YATC 0.6.1:
     1. Sound forwarding option added.
 
   post-install.sh:
-    1. "set -u -e" added.
+    1. "set -u -e" added. Few sed command lines fixed.

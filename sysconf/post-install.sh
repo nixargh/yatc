@@ -63,7 +63,7 @@ usermod -a -G ssh_users $ADM_USER
 
 # configure ssh
 SSHD_CONF=/etc/ssh/sshd_config
-sed -i {s/PermitRootLogin yes/PermitRootLogin no/} $SSHD_CONF 
+sed -i "{s/PermitRootLogin yes/PermitRootLogin no/}" $SSHD_CONF 
 echo -e "AllowGroups\tssh_users" >> $SSHD_CONF
 service ssh restart
 
@@ -85,7 +85,7 @@ cd /tmp
 git clone https://github.com/nixargh/yatc.git
 cd ./yatc
 git checkout paranoic
-sed -i {s/VerySecurePassphrase/$RANDOM$DATE1$RANDOM$DATE2/} ./yatc.py
+sed -i "{s/VerySecurePassphrase/$RANDOM$DATE1$RANDOM$DATE2/}" ./yatc.py
 python3 -mpy_compile ./yatc.py
 mv ./__pycache__/yatc.*.pyc $YATCBIN
 chmod 755 $YATCBIN
@@ -93,7 +93,7 @@ chmod 755 $YATCBIN
 # make user autologin
 # http://blog.shvetsov.com/2010/09/auto-login-ubuntu-user-from-cli.html
 TTY_CONF=/etc/init/tty1.conf
-sed -i {s/"exec"/"#exec"/} $TTY_CONF 
+sed -i '{s/exec/#exec/}' $TTY_CONF 
 echo "exec /bin/login -f $RDPUSER < /dev/tty1 > /dev/tty1 2>&1" >> $TTY_CONF
 
 # add some rights to user
@@ -115,13 +115,13 @@ chown $RDPUSER:$RDPUSER -R /home/$RDPUSER
 CUPSD_CONF=/etc/cups/cupsd.conf
 mv $CUPSD_CONF $CUPSD_CONF.orig
 awk '/\/Location/ {print "  Allow from 10.0.*"; print; next }1' $CUPSD_CONF.orig >> $CUPSD_CONF
-sed -i {s/"127.0.0.1"/"0.0.0.0"/} $CUPSD_CONF
-sed -i {s/"localhost"/"0.0.0.0"/} $CUPSD_CONF
+sed -i '{s/127.0.0.1/0.0.0.0/}' $CUPSD_CONF
+sed -i '{s/localhost/0.0.0.0/}' $CUPSD_CONF
 service cups restart
 
 # setup usbmount
 USBM_CONF=/etc/usbmount/usbmount.conf
-sed -i {s/"FILESYSTEMS=\"fuseblk vfat ext2 ext3 ext4 hfsplus\""/"FILESYSTEMS=\"ntfs vfat ext2 ext3 ext4 hfsplus\""/} $USBM_CONF
+sed -i '{s/FILESYSTEMS="fuseblk vfat ext2 ext3 ext4 hfsplus"/FILESYSTEMS="ntfs vfat ext2 ext3 ext4 hfsplus"/}' $USBM_CONF
 sed -i {s/"FS_MOUNTOPTIONS=\"\""/"FS_MOUNTOPTIONS=\"-fstype=fuseblk,uid=$RDPUSER,gid=$RDPUSER -fstype=ntfs,uid=$RDPUSER,gid=$RDPUSER -fstype=vfat,uid=$RDPUSER,gid=$RDPUSER -fstype=ext2,uid=$RDPUSER,gid=$RDPUSER -fstype=ext3,uid=$RDPUSER,gid=$RDPUSER -fstype=ext4,uid=$RDPUSER,gid=$RDPUSER"\"/} $USBM_CONF
 
 # enable puppet
