@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -331,6 +331,12 @@ class App():
         logging.debug("USB storage device redirection enabled.")
         xfreerdp.append("/drive:usbdisk,/media/usb")
 
+    # check if we need to forward sound
+    if self.conf.get("sound"):
+      if int(self.conf["sound"]) == 1:
+        logging.debug("Sound forwarding enabled.")
+        xfreerdp.append("/sound")
+
     # choose avaliable terminal server to connect
     host = self.conf["host1"]
     domain = self.conf["domain1"]
@@ -430,7 +436,7 @@ class Settings():
 
     self.window = Toplevel(parent, bd = 2, relief = "raised", cursor = "left_ptr")
     settingsW = 300
-    settingsH = 200
+    settingsH = 250
     SW = (self.window.winfo_screenwidth() - settingsW) / 2
     SH = (self.window.winfo_screenheight() - settingsH) / 2
     self.window.geometry("%dx%d+%d+%d" % (settingsW, settingsH, SW, SH))
@@ -522,12 +528,23 @@ class Settings():
       if int(self.conf.get("usb")) == 1:
         usbCheckbutton.select()
 
+    # Check box to enable/disable sound forwarding
+    soundLabel = Label(settingsFrame, text = "Перенаправлять звук:", anchor = "w", width = 25)
+    soundLabel.grid(row = 8, column = 1, columnspan = 2)
+
+    self.sound = IntVar()
+    soundCheckbutton = Checkbutton(settingsFrame, variable = self.sound)
+    soundCheckbutton.grid(row = 8, column = 3)
+    if self.conf.get("sound"):
+      if int(self.conf.get("sound")) == 1:
+        soundCheckbutton.select()
+
     # show screen resolution at settings screen
     screenResLabel = Label(settingsFrame, text = "Разрешение экрана:", anchor = "w", width = 25)
-    screenResLabel.grid(row = 8, column = 1, columnspan = 2)
+    screenResLabel.grid(row = 9, column = 1, columnspan = 2)
 
     screenResEntry = Entry(settingsFrame, width = 10)
-    screenResEntry.grid(row = 8, column = 3, columnspan = 1)
+    screenResEntry.grid(row = 9, column = 3, columnspan = 1)
     screenResEntry.insert(0, self.conf["screenRes"])
     screenResEntry.config(state = "readonly")
 
@@ -541,6 +558,7 @@ class Settings():
     self.conf["saveUser"] = self.saveUser.get()
     self.conf["rfx"] = self.rfx.get()
     self.conf["usb"] = self.usb.get()
+    self.conf["sound"] = self.sound.get()
     config.put(self.conf)
     config.write()
     self.window.destroy()

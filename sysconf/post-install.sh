@@ -1,13 +1,14 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 13.10 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-# version 0.6
+VERSION="0.6.1"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER=user
 TIMEZONE="Europe/Moscow"
 FREERDP_BRANCH="master"
 ###############################################################################
+set -u -e
 
 # check that you are root
 if [ $USER != "root" ]; then

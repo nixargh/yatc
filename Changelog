@@ -1,0 +1,6 @@
+YATC 0.6.1:
+  yatc.py:
+    1. Sound forwarding option added.
+
+  post-install.sh:
+    1. "set -u -e" added.
