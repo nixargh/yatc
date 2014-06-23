@@ -25,7 +25,7 @@ ADM_USER=`grep 1000 /etc/passwd |awk 'BEGIN{FS=":"} {print $1}'`
 
 # install required packages
 apt-get update
-apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs
+apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs alsa
 
 # install FreeRDP from git
 apt-get install -y build-essential git-core cmake libssl-dev libx11-dev libxext-dev libxinerama-dev \
@@ -122,7 +122,7 @@ service cups restart
 
 # setup autofs
 echo -e "usbdisk\t-fstype=auto,async,nodev,nosuid,umask=000\t:/dev/sdb1" >> /etc/auto.misc
-sed -i '{s/#\/media  \/etc\/auto.misc/\/media  \/etc\/auto.misc  --timeout=10/}' /etc/auto.master
+sed -i '{s/#\/misc/\/media/}' /etc/auto.master
 
 # enable puppet
 puppet agent --enable
