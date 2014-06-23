@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.6.1"
+__version__ = "0.7.0"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -329,7 +329,13 @@ class App():
     if self.conf.get("usb"):
       if int(self.conf["usb"]) == 1:
         logging.debug("USB storage device redirection enabled.")
-        xfreerdp.append("/drive:usbdisk,/media/usb")
+        xfreerdp.append("/drive:usbdisk,/media/usbdisk")
+
+    # check if we need to redirect CDROM
+    if self.conf.get("cdrom"):
+      if int(self.conf["cdrom"]) == 1:
+        logging.debug("CDROM redirection enabled.")
+        xfreerdp.append("/drive:cdrom,/media/cd")
 
     # check if we need to forward sound
     if self.conf.get("sound"):
@@ -528,23 +534,34 @@ class Settings():
       if int(self.conf.get("usb")) == 1:
         usbCheckbutton.select()
 
+    # Check box to enable/disable CDROM redirect 
+    cdromLabel = Label(settingsFrame, text = "Пробросить CDROM:", anchor = "w", width = 25)
+    cdromLabel.grid(row = 8, column = 1, columnspan = 2)
+
+    self.cdrom = IntVar()
+    cdromCheckbutton = Checkbutton(settingsFrame, variable = self.cdrom)
+    cdromCheckbutton.grid(row = 8, column = 3)
+    if self.conf.get("cdrom"):
+      if int(self.conf.get("cdrom")) == 1:
+        cdromCheckbutton.select()
+
     # Check box to enable/disable sound forwarding
     soundLabel = Label(settingsFrame, text = "Перенаправлять звук:", anchor = "w", width = 25)
-    soundLabel.grid(row = 8, column = 1, columnspan = 2)
+    soundLabel.grid(row = 9, column = 1, columnspan = 2)
 
     self.sound = IntVar()
     soundCheckbutton = Checkbutton(settingsFrame, variable = self.sound)
-    soundCheckbutton.grid(row = 8, column = 3)
+    soundCheckbutton.grid(row = 9, column = 3)
     if self.conf.get("sound"):
       if int(self.conf.get("sound")) == 1:
         soundCheckbutton.select()
 
     # show screen resolution at settings screen
     screenResLabel = Label(settingsFrame, text = "Разрешение экрана:", anchor = "w", width = 25)
-    screenResLabel.grid(row = 9, column = 1, columnspan = 2)
+    screenResLabel.grid(row = 10, column = 1, columnspan = 2)
 
     screenResEntry = Entry(settingsFrame, width = 10)
-    screenResEntry.grid(row = 9, column = 3, columnspan = 1)
+    screenResEntry.grid(row = 10, column = 3, columnspan = 1)
     screenResEntry.insert(0, self.conf["screenRes"])
     screenResEntry.config(state = "readonly")
 
@@ -558,6 +575,7 @@ class Settings():
     self.conf["saveUser"] = self.saveUser.get()
     self.conf["rfx"] = self.rfx.get()
     self.conf["usb"] = self.usb.get()
+    self.conf["cdrom"] = self.cdrom.get()
     self.conf["sound"] = self.sound.get()
     config.put(self.conf)
     config.write()

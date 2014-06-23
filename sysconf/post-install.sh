@@ -1,12 +1,13 @@
 #!/bin/bash
-# script to deploy YATC on Ubuntu 13.10 (netinstall with only ssh server installed)
+# script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.6.1"
+VERSION="0.7.0"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER=user
 TIMEZONE="Europe/Moscow"
 FREERDP_BRANCH="master"
+YATC_BRANCH="automount"
 ###############################################################################
 set -u -e
 
@@ -24,7 +25,7 @@ ADM_USER=`grep 1000 /etc/passwd |awk 'BEGIN{FS=":"} {print $1}'`
 
 # install required packages
 apt-get update
-apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet usbmount
+apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs
 
 # install FreeRDP from git
 apt-get install -y build-essential git-core cmake libssl-dev libx11-dev libxext-dev libxinerama-dev \
@@ -84,7 +85,7 @@ YATCBIN=/usr/local/bin/yatc
 cd /tmp
 git clone https://github.com/nixargh/yatc.git
 cd ./yatc
-git checkout paranoic
+git checkout $YATC_BRANCH
 sed -i "{s/VerySecurePassphrase/$RANDOM$DATE1$RANDOM$DATE2/}" ./yatc.py
 python3 -mpy_compile ./yatc.py
 mv ./__pycache__/yatc.*.pyc $YATCBIN
@@ -119,10 +120,9 @@ sed -i '{s/127.0.0.1/0.0.0.0/}' $CUPSD_CONF
 sed -i '{s/localhost/0.0.0.0/}' $CUPSD_CONF
 service cups restart
 
-# setup usbmount
-USBM_CONF=/etc/usbmount/usbmount.conf
-sed -i '{s/FILESYSTEMS="fuseblk vfat ext2 ext3 ext4 hfsplus"/FILESYSTEMS="ntfs vfat ext2 ext3 ext4 hfsplus"/}' $USBM_CONF
-sed -i {s/"FS_MOUNTOPTIONS=\"\""/"FS_MOUNTOPTIONS=\"-fstype=fuseblk,uid=$RDPUSER,gid=$RDPUSER -fstype=ntfs,uid=$RDPUSER,gid=$RDPUSER -fstype=vfat,uid=$RDPUSER,gid=$RDPUSER -fstype=ext2,uid=$RDPUSER,gid=$RDPUSER -fstype=ext3,uid=$RDPUSER,gid=$RDPUSER -fstype=ext4,uid=$RDPUSER,gid=$RDPUSER"\"/} $USBM_CONF
+# setup autofs
+echo -e "usbdisk\t-fstype=auto,async,nodev,nosuid,umask=000\t:/dev/sdb1" >> /etc/auto.misc
+sed -i '{s/#\/media  \/etc\/auto.misc/\/media  \/etc\/auto.misc  --timeout=10/}' /etc/auto.master
 
 # enable puppet
 puppet agent --enable
