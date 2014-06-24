@@ -122,7 +122,7 @@ service cups restart
 
 # setup autofs
 echo -e "usbdisk\t-fstype=auto,async,nodev,nosuid,umask=000\t:/dev/sdb1" >> /etc/auto.misc
-sed -i '{s/#\/misc/\/media/}' /etc/auto.master
+echo -e "/media\t/etc/auto.misc\t--timeout=20\n" >> /etc/auto.master
 
 # enable puppet
 puppet agent --enable
