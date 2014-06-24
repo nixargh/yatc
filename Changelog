@@ -6,6 +6,7 @@ YATC 0.7.0:
     1. usbmount replaced by autofs.
     2. YATC_BRANCH variable added.
     3. Alsa added to dependecies.
+    4. "user" added to sound group.
 
 
 YATC 0.6.1:

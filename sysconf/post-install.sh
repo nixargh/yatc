@@ -51,7 +51,7 @@ ldconfig
 
 
 # create user
-useradd -m -U -c "RDP User" -G shadow -s /bin/bash $RDPUSER
+useradd -m -U -c "RDP User" -G shadow,sound -s /bin/bash $RDPUSER
 
 # create user config directory
 mkdir /home/$RDPUSER/.config
