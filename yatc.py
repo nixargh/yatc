@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.7.0"
+__version__ = "0.7.1"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -341,7 +341,7 @@ class App():
     if self.conf.get("sound"):
       if int(self.conf["sound"]) == 1:
         logging.debug("Sound forwarding enabled.")
-        xfreerdp.append("/sound")
+        xfreerdp.append("/sound:sys:pulse")
 
     # choose avaliable terminal server to connect
     host = self.conf["host1"]

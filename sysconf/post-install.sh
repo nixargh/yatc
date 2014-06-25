@@ -1,7 +1,7 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.7.0"
+VERSION="0.7.1"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER=user
@@ -25,12 +25,12 @@ ADM_USER=`grep 1000 /etc/passwd |awk 'BEGIN{FS=":"} {print $1}'`
 
 # install required packages
 apt-get update
-apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs alsa
+apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs
 
 # install FreeRDP from git
 apt-get install -y build-essential git-core cmake libssl-dev libx11-dev libxext-dev libxinerama-dev \
 libxcursor-dev libxdamage-dev libxv-dev libxkbfile-dev libasound2-dev libcups2-dev libxml2 libxml2-dev \
-libxrandr-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libxi-dev libavcodec-dev
+libxrandr-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libxi-dev libavcodec-dev libpulse-dev
 
 cd /tmp
 git clone git://github.com/FreeRDP/FreeRDP.git
@@ -39,7 +39,7 @@ git checkout $FREERDP_BRANCH
 
 DATE1=`date +%s%N`
 
-cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_SSE2=ON -DWITH_CUPS=ON -DCHANNEL_PRINTER=ON .
+cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_SSE2=ON -DWITH_CUPS=ON -DCHANNEL_PRINTER=ON -DWITH_PULSE=ON .
 
 DATE2=`date +%s%N`
 

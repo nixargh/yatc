@@ -1,3 +1,12 @@
+YATC 0.7.1:
+  yatc.py:
+    1. Alsa replaced by pulseaudio.
+    
+  post-install.sh:
+    1. Alsa removed from dependencies.
+    2. libpulse-dev added to dependencies.
+
+
 YATC 0.7.0:
   yatc.py:
     1. CDROM redirection added.
@@ -5,7 +14,7 @@ YATC 0.7.0:
   post-install.sh:
     1. usbmount replaced by autofs.
     2. YATC_BRANCH variable added.
-    3. Alsa added to dependecies.
+    3. Alsa added to dependencies.
     4. "user" added to sound group.
 
 
