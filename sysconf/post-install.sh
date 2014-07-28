@@ -1,7 +1,7 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.7.1"
+VERSION="0.7.2"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER=user
@@ -51,7 +51,7 @@ ldconfig
 
 
 # create user
-useradd -m -U -c "RDP User" -G shadow,sound -s /bin/bash $RDPUSER
+useradd -m -U -c "RDP User" -G shadow,audio -s /bin/bash $RDPUSER
 
 # create user config directory
 mkdir /home/$RDPUSER/.config

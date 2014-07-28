@@ -1,3 +1,8 @@
+YATC 0.7.2:
+  post-install.sh:
+    1. Fixed user group from sound to audio.
+
+
 YATC 0.7.1:
   yatc.py:
     1. Alsa replaced by pulseaudio.
