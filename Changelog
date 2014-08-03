@@ -1,3 +1,10 @@
+YATC 0.7.3:
+  post-install.sh
+    1. More requirements for pulseaudio added.
+    2. Pulseaudio access groups membership for user added.
+    3. pulseaudio daemon now start at "user" session.
+    4. Unmuting alsa Master and PCM + pulseaudio device with index "0".
+
 YATC 0.7.2:
   post-install.sh:
     1. Fixed user group from sound to audio.

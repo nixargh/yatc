@@ -1,10 +1,10 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.7.2"
+VERSION="0.7.3"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
-RDPUSER=user
+RDPUSER="user"
 TIMEZONE="Europe/Moscow"
 FREERDP_BRANCH="master"
 YATC_BRANCH="automount"
@@ -25,12 +25,13 @@ ADM_USER=`grep 1000 /etc/passwd |awk 'BEGIN{FS=":"} {print $1}'`
 
 # install required packages
 apt-get update
-apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs
+apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs libasound2 \
+  libasound2-plugins alsa-utils alsa-oss pulseaudio pulseaudio-utils
 
 # install FreeRDP from git
 apt-get install -y build-essential git-core cmake libssl-dev libx11-dev libxext-dev libxinerama-dev \
-libxcursor-dev libxdamage-dev libxv-dev libxkbfile-dev libasound2-dev libcups2-dev libxml2 libxml2-dev \
-libxrandr-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libxi-dev libavcodec-dev libpulse-dev
+  libxcursor-dev libxdamage-dev libxv-dev libxkbfile-dev libasound2-dev libcups2-dev libxml2 libxml2-dev \
+  libxrandr-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libxi-dev libavcodec-dev libpulse-dev
 
 cd /tmp
 git clone git://github.com/FreeRDP/FreeRDP.git
@@ -51,7 +52,7 @@ ldconfig
 
 
 # create user
-useradd -m -U -c "RDP User" -G shadow,audio -s /bin/bash $RDPUSER
+useradd -m -U -c "RDP User" -G shadow,audio,pulse,pulse-access -s /bin/bash $RDPUSER
 
 # create user config directory
 mkdir /home/$RDPUSER/.config
@@ -102,7 +103,7 @@ echo -e "$RDPUSER\tALL=(root) NOPASSWD:/sbin/reboot,/sbin/poweroff\n" >> /etc/su
 
 # setup X and application to start on boot at terminal
 BASH_PROFILE=/home/$RDPUSER/.bash_profile
-echo ". startx" > $BASH_PROFILE
+echo -e "pulseaudio -D\n. startx" > $BASH_PROFILE
 
 # /home/user/.xinitrc
 XINITRC=/home/$RDPUSER/.xinitrc
@@ -127,4 +128,12 @@ echo -e "/media\t/etc/auto.misc\t--timeout=20\n" >> /etc/auto.master
 # enable puppet
 puppet agent --enable
 
+# Unmute alsa & pulseaudio
+amixer set PCM unmute
+amixer set Master unmute
+sudo -i -u $RDPUSER pulseaudio -D
+sleep 1
+sudo -i -u $RDPUSER pactl set-sink-mute 0 0
+
+# Finaly reboot
 reboot
