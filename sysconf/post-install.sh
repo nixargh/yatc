@@ -1,7 +1,7 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.7.3"
+VERSION="0.7.4"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
@@ -69,6 +69,13 @@ sed -i "{s/PermitRootLogin yes/PermitRootLogin no/}" $SSHD_CONF
 echo -e "AllowGroups\tssh_users" >> $SSHD_CONF
 service ssh restart
 
+# Unmute alsa & pulseaudio
+amixer set PCM unmute
+amixer set Master unmute
+sudo -i -u $RDPUSER pulseaudio -D
+sleep 1
+sudo -i -u $RDPUSER pactl set-sink-mute 0 0
+
 # install python library for pam authentication
 cd /tmp
 git clone https://github.com/leonnnn/python3-simplepam.git
@@ -127,13 +134,6 @@ echo -e "/media\t/etc/auto.misc\t--timeout=20\n" >> /etc/auto.master
 
 # enable puppet
 puppet agent --enable
-
-# Unmute alsa & pulseaudio
-amixer set PCM unmute
-amixer set Master unmute
-sudo -i -u $RDPUSER pulseaudio -D
-sleep 1
-sudo -i -u $RDPUSER pactl set-sink-mute 0 0
 
 # Finaly reboot
 reboot

@@ -1,5 +1,9 @@
+YATC 0.7.4:
+  post-install.sh:
+    1. Fixing pulse setup.
+
 YATC 0.7.3:
-  post-install.sh
+  post-install.sh:
     1. More requirements for pulseaudio added.
     2. Pulseaudio access groups membership for user added.
     3. pulseaudio daemon now start at "user" session.
