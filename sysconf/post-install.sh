@@ -57,7 +57,7 @@ useradd -m -U -c "RDP User" -G shadow,audio,pulse,pulse-access -s /bin/bash $RDP
 # create user config directory
 CONF_DIR="/home/$RDPUSER/.config"
 mkdir $CONF_DIR
-chow $RDPUSER:$RDPUSER $CONF_DIR
+chown $RDPUSER:$RDPUSER $CONF_DIR
 
 # add group for ssh access
 groupadd ssh_users
