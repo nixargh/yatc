@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.7.5"
+__version__ = "0.8.1"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -27,10 +27,8 @@ import time
 import logging
 from tkinter import *
 from subprocess import call, check_call, check_output
-from simplecrypt import encrypt, decrypt
 ##############################################################################
-logFile = os.path.expanduser("~/yatc.log")
-#mediaMountDir = "/media"
+logFile = os.path.expanduser("~/.yatc/yatc.log")
 ##############################################################################
 # change current directory to script own directory
 #
@@ -81,49 +79,19 @@ def getAdmuser():
       return user
   return False
 
-## get list of USB storage devices mounted inside /media
-##
-#def getUSBList():
-#  USBList = []
-#  for entry in os.listdir(mediaMountDir):
-#    dir = os.path.join(mediaMountDir, entry)
-#    if os.path.isdir(dir):
-#      USBList.append(dir)
-#  return USBList
-#
-#
-## create xfreerdp formated list of disks to redirect
-##
-#def diskList():
-#  disksString = ''
-#  USBList = getUSBList()
-#  for usbd in USBList:
-#    disksString = disksString + ',' + os.path.basename(usbd) + ',' + usbd
-#  return disksString
-
 # Logging
 #
 def createLog():
   logging.basicConfig(filename = logFile, level = logging.INFO, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
 ##############################################################################
-# Encryption class
-#
-class Crypt():
-  def __init__(self):
-    self.passpharase = "VerySecurePassphrase"
-    logging.info("Encryption initialised.")
-
-  def encryptString(self, string):
-    return encrypt(self.passpharase, string)
-
-  def decryptString(self, encryptedString):
-    return decrypt(self.passpharase, encryptedString).decode('utf-8')
 
 # Operations with configuration
 #
 class Config():
   def __init__(self):
-    self.configFile = os.path.expanduser("~/.config/yatc")
+    from crypt import Crypt
+
+    self.configFile = os.path.expanduser("~/.yatc/yatc.conf")
     self.config = {}
     self.crypt = Crypt()
     logging.info("Config initialized.")
@@ -288,10 +256,7 @@ class App():
     shutdownButton = Button(systemFrame, width = 10, text = "Выключить", command = self.shutdown)
     shutdownButton.pack(side = 'right')
 
-    #settingsImage = PhotoImage(file = "./images/settings.gif")
     settingsButton = Button(systemFrame, width = 8, text = "Настройки", command = self.settings)
-    #settingsButton = Button(systemFrame, image = settingsImage, command = self.settings, relief = "flat")
-    #settingsButton.image = settingsImage
     settingsButton.pack(side = 'left')
 
   # command fro RDP connection
@@ -583,6 +548,10 @@ class Settings():
     #self.parent.deiconify()
 
 ##############################################################################
+# insert few more path to libraries
+sys.path.insert(1,"./lib")
+sys.path.insert(2,"/usr/lib/yatc")
+
 # change directory to script home
 chdirToHome()
 

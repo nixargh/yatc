@@ -1,10 +1,24 @@
+YATC 0.8.1:
+  yatc.py:
+    1. New log path - "~/.yatc/yatc.log".
+    2. New config path - "~/.yatc/yatc.conf".
+    3. Crypt class moved to separate file.
+
+  post-install.sh:
+    1. YATC now has it own configuration directory under user home.
+    2. YATC binary path changed.
+    3. YATC lib directory added.
+
+    
 YATC 0.7.5:
   post-install.sh:
     1. Adding "or" to not stop if alsa doesn't have PCM device.
 
+
 YATC 0.7.4:
   post-install.sh:
     1. Fixing pulse setup.
+
 
 YATC 0.7.3:
   post-install.sh:
@@ -12,6 +26,7 @@ YATC 0.7.3:
     2. Pulseaudio access groups membership for user added.
     3. pulseaudio daemon now start at "user" session.
     4. Unmuting alsa Master and PCM + pulseaudio device with index "0".
+
 
 YATC 0.7.2:
   post-install.sh:

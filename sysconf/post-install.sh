@@ -1,13 +1,13 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.7.5"
+VERSION="0.8.1"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
 TIMEZONE="Europe/Moscow"
 FREERDP_BRANCH="master"
-YATC_BRANCH="automount"
+YATC_BRANCH="saparation"
 ###############################################################################
 set -u -e
 
@@ -55,7 +55,7 @@ ldconfig
 useradd -m -U -c "RDP User" -G shadow,audio,pulse,pulse-access -s /bin/bash $RDPUSER
 
 # create user config directory
-CONF_DIR="/home/$RDPUSER/.config"
+CONF_DIR="/home/$RDPUSER/.yatc"
 mkdir $CONF_DIR
 chown $RDPUSER:$RDPUSER $CONF_DIR
 
@@ -91,15 +91,22 @@ cd ./simple-crypt/
 python3 setup.py install
 
 # install YATC
-YATCBIN=/usr/local/bin/yatc
+YATCBIN=/usr/bin/yatc
+YATCLIB=/usr/lib/yatc
 cd /tmp
 git clone https://github.com/nixargh/yatc.git
 cd ./yatc
 git checkout $YATC_BRANCH
-sed -i "{s/VerySecurePassphrase/$RANDOM$DATE1$RANDOM$DATE2/}" ./yatc.py
+
 python3 -mpy_compile ./yatc.py
 mv ./__pycache__/yatc.*.pyc $YATCBIN
 chmod 755 $YATCBIN
+
+sed -i "{s/VerySecurePassphrase/$RANDOM$DATE1$RANDOM$DATE2/}" ./lib/crypt.py
+python3 -mpy_compile ./lib/crypt.py
+mkdir -p $YATCLIB
+mv ./lib/__pycache__/crypt.*.pyc $YATCLIB/crypt.pyc
+chmod 755 -R $YATCLIB
 
 # make user autologin
 # http://blog.shvetsov.com/2010/09/auto-login-ubuntu-user-from-cli.html
