@@ -6,7 +6,7 @@ VERSION="0.8.1"
 # !!! must be executed from root !!!
 RDPUSER="user"
 TIMEZONE="Europe/Moscow"
-FREERDP_BRANCH="master"
+FREERDP_BRANCH="stable-1.1"
 YATC_BRANCH="saparation"
 ###############################################################################
 set -u -e
@@ -102,8 +102,9 @@ python3 -mpy_compile ./yatc.py
 mv ./__pycache__/yatc.*.pyc $YATCBIN
 chmod 755 $YATCBIN
 
-sed -i "{s/VerySecurePassphrase/$RANDOM$DATE1$RANDOM$DATE2/}" ./lib/crypt.py
-python3 -mpy_compile ./lib/crypt.py
+CRYPT_LIB="./lib/crypt.py"
+sed -i "{s/VerySecurePassphrase/$RANDOM$DATE1$RANDOM$DATE2/}" $CRYPT_LIB
+python3 -mpy_compile $CRYPT_LIB
 mkdir -p $YATCLIB
 mv ./lib/__pycache__/crypt.*.pyc $YATCLIB/crypt.pyc
 chmod 755 -R $YATCLIB
@@ -132,7 +133,7 @@ chown $RDPUSER:$RDPUSER -R /home/$RDPUSER
 # and allow access from subnet
 CUPSD_CONF=/etc/cups/cupsd.conf
 mv $CUPSD_CONF $CUPSD_CONF.orig
-awk '/\/Location/ {print "  Allow from 10.0.*"; print; next }1' $CUPSD_CONF.orig >> $CUPSD_CONF
+awk '/\/Location/ {print "  Allow from 10.*"; print; next }1' $CUPSD_CONF.orig >> $CUPSD_CONF
 sed -i '{s/127.0.0.1/0.0.0.0/}' $CUPSD_CONF
 sed -i '{s/localhost/0.0.0.0/}' $CUPSD_CONF
 service cups restart

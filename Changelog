@@ -8,6 +8,7 @@ YATC 0.8.1:
     1. YATC now has it own configuration directory under user home.
     2. YATC binary path changed.
     3. YATC lib directory added.
+    4. FreeRDP branch switched to "stable-1.1".
 
     
 YATC 0.7.5:
