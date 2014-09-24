@@ -1,3 +1,7 @@
+YATC 0.8.2:
+  post-install.sh:
+    1. Forked FreeRDP to nixargh account to freeze current state. 
+
 YATC 0.8.1:
   yatc.py:
     1. New log path - "~/.yatc/yatc.log".

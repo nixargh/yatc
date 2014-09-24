@@ -1,12 +1,13 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.8.1"
+VERSION="0.8.2"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
 TIMEZONE="Europe/Moscow"
-FREERDP_BRANCH="stable-1.1"
+FREERDP_REPO="https://github.com/nixargh/FreeRDP.git"
+FREERDP_BRANCH="master"
 YATC_BRANCH="separation"
 ###############################################################################
 set -u -e
@@ -34,7 +35,7 @@ apt-get install -y build-essential git-core cmake libssl-dev libx11-dev libxext-
   libxrandr-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libxi-dev libavcodec-dev libpulse-dev
 
 cd /tmp
-git clone git://github.com/FreeRDP/FreeRDP.git
+git clone $FREERDP_REPO
 cd ./FreeRDP
 git checkout $FREERDP_BRANCH
 
