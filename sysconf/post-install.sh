@@ -7,7 +7,7 @@ VERSION="0.8.1"
 RDPUSER="user"
 TIMEZONE="Europe/Moscow"
 FREERDP_BRANCH="stable-1.1"
-YATC_BRANCH="saparation"
+YATC_BRANCH="separation"
 ###############################################################################
 set -u -e
 
