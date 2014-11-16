@@ -1,14 +1,15 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.8.2"
+VERSION="0.8.3"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
 TIMEZONE="Europe/Moscow"
 FREERDP_REPO="https://github.com/nixargh/FreeRDP.git"
 FREERDP_BRANCH="master"
-YATC_BRANCH="separation"
+YATC_REPO="https://github.com/nixargh/yatc.git"
+YATC_BRANCH="master"
 ###############################################################################
 set -u -e
 
@@ -95,7 +96,7 @@ python3 setup.py install
 YATCBIN=/usr/bin/yatc
 YATCLIB=/usr/lib/yatc
 cd /tmp
-git clone https://github.com/nixargh/yatc.git
+git clone $YATC_REPO
 cd ./yatc
 git checkout $YATC_BRANCH
 

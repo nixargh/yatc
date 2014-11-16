@@ -1,14 +1,14 @@
 #!/bin/bash
 # script to upgrade YATC on Ubuntu 12.04 - 14.04
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.8.2"
+VERSION="0.8.3"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
 FREERDP_REPO="https://github.com/nixargh/FreeRDP.git"
 FREERDP_BRANCH="master"
 YATC_REPO="https://github.com/nixargh/yatc.git"
-YATC_BRANCH="separation"
+YATC_BRANCH="master"
 TMP_DIR="/tmp"
 ###############################################################################
 set -u -e

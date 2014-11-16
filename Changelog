@@ -1,3 +1,16 @@
+YATC 0.8.3:
+  yatc.py:
+    1. Added dialog to re-ask user about reboot and shutdown.
+    2. Exception handling for freerdp improved. Will log Freerdp exit code and output now.
+
+  post-install.sh:
+    1. YATC_REPO variable added.
+    2. YATC_BRANCH switched to 'master'.
+
+  uprgade.sh:
+    1. Script for upgrade added.
+    2. YATC_BRANCH switched to 'master'.
+
 YATC 0.8.2:
   post-install.sh:
     1. Forked FreeRDP to nixargh account to freeze current state. 

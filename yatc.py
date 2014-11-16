@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.8.2"
+__version__ = "0.8.3"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -26,7 +26,9 @@ import os
 import time
 import logging
 from tkinter import *
-from subprocess import call, check_call, check_output
+from tkinter import messagebox
+from subprocess import *
+#from subprocess import call, check_call, check_output, CalledProcessError
 ##############################################################################
 logFile = os.path.expanduser("~/.yatc/yatc.log")
 ##############################################################################
@@ -53,7 +55,7 @@ def checkUser(user, password):
 #
 def checkRDPPort(host):
   try:
-    check_call(["nc", "-z", "-w1", host, "3389"])
+    check_output(["nc", "-z", "-w1", host, "3389"], stderr=STDOUT)
     return True
   except:
     return False
@@ -143,13 +145,13 @@ class Config():
   # get current configuration
   #
   def get(self):
-    logging.debug("Configuration is obtained.")
+    logging.info("Configuration is obtained.")
     return self.config
 
   # put changed configuration
   #
   def put(self, config):
-    logging.debug("Configuration is updated.")
+    logging.info("Configuration is updated.")
     self.config = config
 
 # Main apllication window
@@ -195,6 +197,15 @@ class App():
     self.root.bind("<Control-s>", self.settings)
 
     self.root.mainloop()
+
+  # Idiot's dialog.
+  #
+  def areYouSureDialog(self, question):
+    logging.info("Show re-asking dialog")
+    if messagebox.askokcancel(message = question):
+      return True
+    else:
+      return False
   
   # Connection button
   #
@@ -331,9 +342,12 @@ class App():
       self.root.withdraw()
       try:
         # start freerdp
-        call(xfreerdp)
+        check_output(xfreerdp, universal_newlines=True, stderr=STDOUT)
+      except CalledProcessError as err:
+        logging.error("freerdp exit code: %s." % err.returncode)
+        logging.error("freerdp output:\n%s." % err.output)
       except BaseException as err:
-        logging.error("freerdp connection failed with: " % err)
+        logging.error("Failed to connect: %s." % err)
 
       # show root window
       self.root.deiconify()
@@ -344,12 +358,22 @@ class App():
   # command for reboot
   #
   def reboot(self):
-    call(["sudo", "reboot"])
+    logging.info("Reboot requested")
+    if self.areYouSureDialog("Перезагрузить компьютер?"):
+      logging.info("Rebooting")
+      call(["sudo", "reboot"])
+    else:
+      logging.info("Reboot canceled")
 
   # command for shutdown
   # 
   def shutdown(self):
-    call(["sudo", "poweroff"])
+    logging.info("Shutdown requested")
+    if self.areYouSureDialog("Выключить компьютер?"):
+      logging.info("Shutdowning")
+      call(["sudo", "poweroff"])
+    else:
+      logging.info("Shutdown canceled")
 
   # command to start Settings window
   #
