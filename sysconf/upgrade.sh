@@ -88,7 +88,6 @@ JOB=$1
 echo "Starting upgrade of $1."
 
 check_root || exit 0
-unmute
 create_config_dir
 
 case $JOB in
