@@ -2,6 +2,8 @@ YATC 0.8.3:
   yatc.py:
     1. Added dialog to re-ask user about reboot and shutdown.
     2. Exception handling for freerdp improved. Will log Freerdp exit code and output now.
+    3. Write version to log.
+    4. Write version if any command line argument specified.
 
   post-install.sh:
     1. YATC_REPO variable added.

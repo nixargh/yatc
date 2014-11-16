@@ -576,12 +576,17 @@ class Settings():
 sys.path.insert(1,"./lib")
 sys.path.insert(2,"/usr/lib/yatc")
 
+# print version
+if len(sys.argv) > 1:
+  print(__version__)
+  exit(0)
+
 # change directory to script home
 chdirToHome()
 
 # create log
 createLog()
-logging.info("Starting yatc...")
+logging.info("Starting YATC (%s)." % __version__)
 
 # read configuration
 config = Config()
@@ -589,3 +594,5 @@ config.read()
 
 # start application
 app = App(config)
+
+exit(0)
