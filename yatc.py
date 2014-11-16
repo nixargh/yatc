@@ -28,7 +28,6 @@ import logging
 from tkinter import *
 from tkinter import messagebox
 from subprocess import *
-#from subprocess import call, check_call, check_output, CalledProcessError
 ##############################################################################
 logFile = os.path.expanduser("~/.yatc/yatc.log")
 ##############################################################################
@@ -578,8 +577,9 @@ sys.path.insert(2,"/usr/lib/yatc")
 
 # print version
 if len(sys.argv) > 1:
-  print(__version__)
-  exit(0)
+  if sys.argv[1] == '-v':
+    print(__version__)
+    exit(0)
 
 # change directory to script home
 chdirToHome()
