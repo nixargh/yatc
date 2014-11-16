@@ -71,11 +71,13 @@ create_config_dir() {
 # Unmute alsa & pulseaudio.
 #
 unmute() {
-  amixer set PCM unmute || echo "Can't unmute PCM. Skipping..."
-  amixer set Master unmute
-  sudo -i -u $RDPUSER pulseaudio -D
-  sleep 1
-  sudo -i -u $RDPUSER pactl set-sink-mute 0 0
+  if [ `ps aux | grep -v grep |grep -c pulseaudio` -eq 0 ]; then
+    amixer set PCM unmute || echo "Can't unmute PCM. Skipping..."
+    amixer set Master unmute
+    sudo -i -u $RDPUSER pulseaudio -D
+    sleep 1
+    sudo -i -u $RDPUSER pactl set-sink-mute 0 0
+  fi
 
   return 0
 }
