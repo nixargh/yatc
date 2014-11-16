@@ -343,8 +343,11 @@ class App():
         # start freerdp
         check_output(xfreerdp, universal_newlines=True, stderr=STDOUT)
       except CalledProcessError as err:
-        logging.error("freerdp exit code: %s." % err.returncode)
-        logging.error("freerdp output:\n%s." % err.output)
+        if err.returncode == 255:
+          logging.info("freerdp exit code: %s. It's normal after session disconection." % err.returncode)
+        else:
+          logging.error("freerdp exit code: %s." % err.returncode)
+          logging.error("freerdp output:\n%s." % err.output)
       except BaseException as err:
         logging.error("Failed to connect: %s." % err)
 
