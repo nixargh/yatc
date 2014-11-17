@@ -201,10 +201,13 @@ class App():
   #
   def areYouSureDialog(self, question):
     logging.info("Show re-asking dialog")
-    areYouSureFrame = Frame(self.root, bd = 2, relief = "sunken")
-    if messagebox.askokcancel(parent = areYouSureFrame, message = question):
+
+    self.root.withdraw()
+
+    if messagebox.askokcancel(message = question):
       return True
     else:
+      self.root.deiconify()
       return False
   
   # Connection button
