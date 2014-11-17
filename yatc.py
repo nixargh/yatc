@@ -201,7 +201,8 @@ class App():
   #
   def areYouSureDialog(self, question):
     logging.info("Show re-asking dialog")
-    if messagebox.askokcancel(message = question):
+    areYouSureFrame = Frame(self.root, bd = 2, relief = "sunken")
+    if messagebox.askokcancel(parent = areYouSureFrame, message = question):
       return True
     else:
       return False
