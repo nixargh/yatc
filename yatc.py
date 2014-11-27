@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.8.3"
+__version__ = "0.8.4"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -30,6 +30,7 @@ from tkinter import messagebox
 from subprocess import *
 ##############################################################################
 logFile = os.path.expanduser("~/.yatc/yatc.log")
+versionFile = os.path.expanduser("~/.yatc/version")
 ##############################################################################
 # change current directory to script own directory
 #
@@ -79,6 +80,14 @@ def getAdmuser():
     if uid == 1000:
       return user
   return False
+
+# write version
+#
+def writeVersion(v_file):
+    file = open(v_file, "wb")
+    file.write(bytes(__version__ + "\n", 'UTF-8'))
+    file.close()
+
 
 # Logging
 #
@@ -590,6 +599,9 @@ if len(sys.argv) > 1:
 
 # change directory to script home
 chdirToHome()
+
+# write version
+writeVersion(versionFile)
 
 # create log
 createLog()
