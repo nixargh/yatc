@@ -88,13 +88,13 @@ JOB=$1
 echo "Starting upgrade of $1."
 
 check_root || exit 0
-create_config_dir
 
 case $JOB in
   freerdp)
     upgrade_freerdp
   ;;
   yatc)
+    create_config_dir
     upgrade_yatc
   ;;
 esac
