@@ -9,7 +9,7 @@ TIMEZONE="Europe/Moscow"
 FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
-YATC_BRANCH="master"
+YATC_BRANCH="2x_client"
 TWOXCLIENT="http://www.2x.com/downloads/rdp-clients/2xclient.deb"
 ###############################################################################
 set -u -e
@@ -34,7 +34,7 @@ common() {
   # install required packages
   apt-get update
   apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs libasound2 \
-    libasound2-plugins alsa-utils alsa-oss pulseaudio pulseaudio-utils
+    libasound2-plugins alsa-utils alsa-oss pulseaudio pulseaudio-utils dbus-x11
 
 
 
@@ -61,7 +61,7 @@ common() {
   # Unmute alsa & pulseaudio
   amixer set PCM unmute || echo "Can't unmute PCM. Skipping..."
   amixer set Master unmute
-  sudo -i -u $RDPUSER pulseaudio -D
+  sudo -i -u $RDPUSER dbus-launch --exit-with-session pulseaudio --daemon
   sleep 1
   sudo -i -u $RDPUSER pactl set-sink-mute 0 0
 
@@ -109,7 +109,7 @@ common() {
 
   # setup X and application to start on boot at terminal
   BASH_PROFILE=/home/$RDPUSER/.bash_profile
-  echo -e "pulseaudio -D\n. startx" > $BASH_PROFILE
+  echo -e "dbus-launch --exit-with-session pulseaudio --daemon\n. startx" > $BASH_PROFILE
 
   # /home/user/.xinitrc
   XINITRC=/home/$RDPUSER/.xinitrc
@@ -157,11 +157,11 @@ freerdp() {
 
 
 twoxclient() {
-  apt-get install -y libxpm4:i386 libxml2:i386
+  apt-get install -y pcscd libccid:i386 libpcsclite1:i386 libxpm4:i386 libxml2:i386
 
   cd /tmp
   wget $TWOXCLIENT -O ./2xclient.deb
-  dpkg -i -y ./2xclient.deb
+  dpkg -i ./2xclient.deb
 
 }
 
