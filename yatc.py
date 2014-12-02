@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.8.4"
+__version__ = "0.9.1"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -295,7 +295,8 @@ class App():
     self.passwordEntry.delete(0, END)
 
     # create List of arguments for system call
-    xfreerdp = ["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:32", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/u:" + self.conf["login"], "/p:" + password]
+    #xfreerdp = ["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:32", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/u:" + self.conf["login"], "/p:" + password]
+    xfreerdp = ["/opt/2X/Client/bin/appserverclient", "-m", "MF", "-n", "-P", "printcap", "-g", self.conf["screenRes"], "-u", self.conf["login"], "-p", password]
 
     # remove login information from conf dictionary if required
     if self.conf["saveUser"] == 0:
@@ -311,25 +312,32 @@ class App():
     if self.conf.get("rfx"):
       if int(self.conf["rfx"]) == 1:
         logging.debug("RemoteFX enabled.")
-        xfreerdp.append("/rfx")
+        #xfreerdp.append("/rfx")
+        logging.info("RemoteFX currently not suported by 2X Client")
 
     # check if we need to redirect USB storage device
     if self.conf.get("usb"):
       if int(self.conf["usb"]) == 1:
         logging.debug("USB storage device redirection enabled.")
-        xfreerdp.append("/drive:usbdisk,/media/usbdisk")
+        #xfreerdp.append("/drive:usbdisk,/media/usbdisk")
+        xfreerdp.append("-D")
+        xfreerdp.append("usbdisk=/media/usbdisk")
 
     # check if we need to redirect CDROM
     if self.conf.get("cdrom"):
       if int(self.conf["cdrom"]) == 1:
         logging.debug("CDROM redirection enabled.")
-        xfreerdp.append("/drive:cdrom,/media/cd")
+        #xfreerdp.append("/drive:cdrom,/media/cd")
+        xfreerdp.append("-D")
+        xfreerdp.append("cdrom=/media/cd")
 
     # check if we need to forward sound
     if self.conf.get("sound"):
       if int(self.conf["sound"]) == 1:
         logging.debug("Sound forwarding enabled.")
-        xfreerdp.append("/sound:sys:pulse")
+        #xfreerdp.append("/sound:sys:pulse")
+        xfreerdp.append("-S")
+        xfreerdp.append("local")
 
     # choose avaliable terminal server to connect
     host = self.conf["host1"]
@@ -344,16 +352,20 @@ class App():
         logging.info("RDP not listening at host2 (%s)" % host)
         hostOnline = False
 
-    xfreerdp.append("/v:%s" % host)
-    xfreerdp.append("/d:%s" % domain)
+    #xfreerdp.append("/v:%s" % host)
+    #xfreerdp.append("/d:%s" % domain)
+    xfreerdp.append("-s")
+    xfreerdp.append(host)
+    xfreerdp.append("-d")
+    xfreerdp.append(domain)
 
     if hostOnline:
-      # start RDP session by freerdp
+      # start RDP session
       logging.debug("Config before rdp start: %s" % self.conf)
       # hide root window
       self.root.withdraw()
       try:
-        # start freerdp
+        # start rdp
         check_output(xfreerdp, universal_newlines=True, stderr=STDOUT)
       except CalledProcessError as err:
         if err.returncode == 255:
