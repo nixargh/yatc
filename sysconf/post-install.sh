@@ -1,7 +1,7 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.9.1"
+VERSION="0.9.2"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
@@ -10,7 +10,7 @@ FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
 YATC_BRANCH="2x_client"
-TWOXCLIENT="http://www.2x.com/downloads/rdp-clients/2xclient.deb"
+TWOXCLIENT="http://puppet/2xclient.deb"
 ###############################################################################
 set -u -e
 
@@ -35,8 +35,6 @@ common() {
   apt-get update
   apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs libasound2 \
     libasound2-plugins alsa-utils alsa-oss pulseaudio pulseaudio-utils dbus-x11
-
-
 
   # create user
   useradd -m -U -c "RDP User" -G shadow,audio,pulse,pulse-access -s /bin/bash $RDPUSER
@@ -113,7 +111,7 @@ common() {
 
   # /home/user/.xinitrc
   XINITRC=/home/$RDPUSER/.xinitrc
-  echo "python3 $YATCBIN -- -depth 32" > $XINITRC
+  echo "python3 $YATCBIN $BACKEND -- -depth 32" > $XINITRC
 
   # fix onership
   chown $RDPUSER:$RDPUSER -R /home/$RDPUSER
@@ -133,6 +131,8 @@ common() {
 
   # enable puppet
   puppet agent --enable
+
+  return 0
 }
 
 freerdp() {
@@ -153,20 +153,45 @@ freerdp() {
 
   echo "/usr/local/lib/freerdp" > /etc/ld.so.conf.d/freerdp.conf
   ldconfig
+
+  return 0
 }
 
 
 twoxclient() {
-  apt-get install -y pcscd libccid:i386 libpcsclite1:i386 libxpm4:i386 libxml2:i386
+  dpkg --add-architecture i386
+
+  apt-get install -y pcscd:i386 libccid:i386 libpcsclite1:i386 libxpm4:i386 libxml2:i386 libstdc++6:i386
 
   cd /tmp
   wget $TWOXCLIENT -O ./2xclient.deb
   dpkg -i ./2xclient.deb
 
+  return 0
 }
 
 ##### BEGIN ###################################################################
 
-check_user
-common
-twoxclient
+if [[ $# -eq 0 ]]; then
+  echo -e "\tYou must specify RDP backend [freerdp|2xclient]."
+  exit 2
+else
+  BACKEND=$1
+  case $BACKEND in
+    freerdp)
+      check_user
+      common
+      freerdp
+    ;;
+    2xclient)
+      check_user
+      common
+      twoxclient
+    ;;
+    *)
+      echo -e "\tUnknown backend: $BACKEND."
+      exit 2
+    ;;
+  esac
+  reboot
+fi

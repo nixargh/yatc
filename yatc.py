@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.9.1"
+__version__ = "0.9.2"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -165,16 +165,34 @@ class Config():
 # Main apllication window
 #
 class App():
-  def __init__(self, config):
+  def __init__(self, rdpBackend, config):
     logging.info("Starting GUI...")
 
+    self.rdpBackend = rdpBackend
     self.config = config
     self.conf = config.get()
+    self.rdp = []
+
+    self.rdpOptions = { \
+      'backend' : { 'freerdp' : ['xfreerdp'], '2xclient' : ['/opt/2X/Client/bin/appserverclient'] }, \
+      'printer' : { 'freerdp' : ['/printer:'], '2xclient' : ['-P', 'printcap'] }, \
+      'sound' : { 'freerdp' : ['/sound:sys:pulse'], '2xclient' : ['-S', 'local'] }, \
+      'remoteFX' : { 'freerdp' : ['/rfx'], '2xclient' : ['%unsupported%'] }, \
+      'usbdisk' : { 'freerdp' : ['/drive:usbdisk,/media/usbdisk'], '2xclient' : ['-D', 'usbdisk=/media/usbdisk'] }, \
+      'cdrom' : { 'freerdp' : ['/drive:cdrom,/media/cd'], '2xclient' : ['-D', 'cdrom=/media/cd'] }, \
+      'user' : { 'freerdp' : ['/u:%variable%'], '2xclient' : ['-u', '%variable%'] }, \
+      'domain' : { 'freerdp' : ['/d:%variable%'], '2xclient' : ['-d', '%variable%'] }, \
+      'password' : { 'freerdp' : ['/p:%variable%'], '2xclient' : ['-p', '%variable%'] }, \
+      'host' : { 'freerdp' : ['/v:%variable%'], '2xclient' : ['-s', '%variable%'] }, \
+      'resolution' : { 'freerdp' : ['/size:%variable%'], '2xclient' : ['-g', '%variable%'] }, \
+      'color_depth' : { 'freerdp' : ['/bpp:%variable%'], '2xclient' : ['-c', '%variable%'] }, \
+      'extra' : { 'freerdp' : ['/kbd:US', '/cert-ignore', '+aero', '+fonts'], '2xclient' : ['-n', '-m', 'MF'] }
+       }
 
     # get X server screen width and height
     screenW, screenH = getScreenRes()
     self.conf["screenRes"] = "%dx%d" % (screenW, screenH)
-    logging.info("screen resolution = %s" % self.conf["screenRes"])
+    logging.info("Screen resolution = %s" % self.conf["screenRes"])
 
     # create root window
     self.root = Tk()
@@ -205,6 +223,19 @@ class App():
     self.root.bind("<Control-s>", self.settings)
 
     self.root.mainloop()
+
+  # Add RDP option from dictionary to list.
+  #
+  def setRdpOpt(self, opt, variable=None):
+    for rdpOpt in self.rdpOptions[opt][self.rdpBackend]: 
+      if rdpOpt == '%unsupported%':
+        logging.info("%s currently not suported by %s." % (opt, self.rdpBackend))
+      elif rdpOpt == '%variable%':
+        self.rdp.append(variable)
+      else:
+        if variable:
+          rdpOpt = rdpOpt.replace('%variable%', variable)
+        self.rdp.append(rdpOpt)
 
   # Idiot's dialog.
   #
@@ -295,8 +326,12 @@ class App():
     self.passwordEntry.delete(0, END)
 
     # create List of arguments for system call
-    #xfreerdp = ["xfreerdp", "/printer:", "/kbd:US", "/cert-ignore", "/bpp:32", "+aero", "+fonts", "/size:" + self.conf["screenRes"], "/u:" + self.conf["login"], "/p:" + password]
-    xfreerdp = ["/opt/2X/Client/bin/appserverclient", "-m", "MF", "-n", "-P", "printcap", "-g", self.conf["screenRes"], "-u", self.conf["login"], "-p", password]
+    self.setRdpOpt('backend')
+    self.setRdpOpt('extra')
+    self.setRdpOpt('printer')
+    self.setRdpOpt('resolution', self.conf["screenRes"])
+    self.setRdpOpt('user', self.conf["login"])
+    self.setRdpOpt('password', password)
 
     # remove login information from conf dictionary if required
     if self.conf["saveUser"] == 0:
@@ -312,32 +347,25 @@ class App():
     if self.conf.get("rfx"):
       if int(self.conf["rfx"]) == 1:
         logging.debug("RemoteFX enabled.")
-        #xfreerdp.append("/rfx")
-        logging.info("RemoteFX currently not suported by 2X Client")
+        self.setRdpOpt('remoteFX')
 
     # check if we need to redirect USB storage device
     if self.conf.get("usb"):
       if int(self.conf["usb"]) == 1:
         logging.debug("USB storage device redirection enabled.")
-        #xfreerdp.append("/drive:usbdisk,/media/usbdisk")
-        xfreerdp.append("-D")
-        xfreerdp.append("usbdisk=/media/usbdisk")
+        self.setRdpOpt('usbdisk')
 
     # check if we need to redirect CDROM
     if self.conf.get("cdrom"):
       if int(self.conf["cdrom"]) == 1:
         logging.debug("CDROM redirection enabled.")
-        #xfreerdp.append("/drive:cdrom,/media/cd")
-        xfreerdp.append("-D")
-        xfreerdp.append("cdrom=/media/cd")
+        self.setRdpOpt('cdrom')
 
     # check if we need to forward sound
     if self.conf.get("sound"):
       if int(self.conf["sound"]) == 1:
         logging.debug("Sound forwarding enabled.")
-        #xfreerdp.append("/sound:sys:pulse")
-        xfreerdp.append("-S")
-        xfreerdp.append("local")
+        self.setRdpOpt('sound')
 
     # choose avaliable terminal server to connect
     host = self.conf["host1"]
@@ -352,12 +380,8 @@ class App():
         logging.info("RDP not listening at host2 (%s)" % host)
         hostOnline = False
 
-    #xfreerdp.append("/v:%s" % host)
-    #xfreerdp.append("/d:%s" % domain)
-    xfreerdp.append("-s")
-    xfreerdp.append(host)
-    xfreerdp.append("-d")
-    xfreerdp.append(domain)
+    self.setRdpOpt('host', host)
+    self.setRdpOpt('domain', domain)
 
     if hostOnline:
       # start RDP session
@@ -366,13 +390,15 @@ class App():
       self.root.withdraw()
       try:
         # start rdp
-        check_output(xfreerdp, universal_newlines=True, stderr=STDOUT)
+        logging.debug("RDP connection string: %s." % self.rdp)
+        check_output(self.rdp, universal_newlines=True, stderr=STDOUT)
+        logging.info("RDP session ended.")
       except CalledProcessError as err:
-        if err.returncode == 255:
-          logging.info("freerdp exit code: %s. It's normal after session disconection." % err.returncode)
+        if err.returncode == 255 and self.rdpBackend == 'freerdp':
+          logging.info("%s exit code: %s. It's normal after session disconection." % (self.rdpBackend, err.returncode) )
         else:
-          logging.error("freerdp exit code: %s." % err.returncode)
-          logging.error("freerdp output:\n%s." % err.output)
+          logging.error("%s exit code: %s." % (self.rdpBackend, err.returncode) )
+          logging.error("%s output:\n%s." % (self.rdpBackend, err.output) )
       except BaseException as err:
         logging.error("Failed to connect: %s." % err)
 
@@ -603,11 +629,21 @@ class Settings():
 sys.path.insert(1,"./lib")
 sys.path.insert(2,"/usr/lib/yatc")
 
-# print version
+# parse command line arguments
 if len(sys.argv) > 1:
   if sys.argv[1] == '-v':
     print(__version__)
     exit(0)
+  elif sys.argv[1] == 'freerdp':
+    rdpBackend = sys.argv[1]
+  elif sys.argv[1] == '2xclient':
+    rdpBackend = sys.argv[1]
+  else:
+    print("\tUnknown argument: %s" % sys.argv[1])
+    exit(2)
+else:
+  print("\tYou must specify RDP backend [freerdp|2xclient].")
+  exit(2)
 
 # change directory to script home
 chdirToHome()
@@ -624,6 +660,6 @@ config = Config()
 config.read()
 
 # start application
-app = App(config)
+app = App(rdpBackend, config)
 
 exit(0)

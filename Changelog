@@ -1,3 +1,12 @@
+YATC 0.9.2:
+  yatc.py:
+    1. Add support of multiple RDP backends: FreeRDP or "2X RDP client".
+      Now freerdp or 2xclient argument must be specified at startup.
+
+  post-install.sh:
+    1. Add parameter to choose RDP backend.
+      Now freerdp or 2xclient argument must be specified at startup.
+
 YATC 0.9.1:
   yatc.py:
     1. Add support of "2X RDP client" as backend for RDP connection.
