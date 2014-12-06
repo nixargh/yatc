@@ -1,7 +1,7 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.9.2"
+VERSION="0.9.3"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
@@ -10,7 +10,9 @@ FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
 YATC_BRANCH="2x_client"
-TWOXCLIENT="http://puppet/2xclient.deb"
+TWOXCLIENT="http://www.2x.com/downloads/rdp-clients/2xclient.deb"
+TWOXCLIENT_VER="12.0.2270"
+TWOXCLIENT_CHANGELOG="http://www.2x.com/downloads/rdp-clients/Linux-ChangeLog.txt"
 ###############################################################################
 set -u -e
 
@@ -23,6 +25,8 @@ check_user() {
 }
 
 common() {
+  echo -e "\tCommon configuration starting.\n"
+
   # set timezone
   cp -f /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 
@@ -34,7 +38,7 @@ common() {
   # install required packages
   apt-get update
   apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs libasound2 \
-    libasound2-plugins alsa-utils alsa-oss pulseaudio pulseaudio-utils dbus-x11
+    libasound2-plugins alsa-utils alsa-oss pulseaudio pulseaudio-utils dbus-x11 curl
 
   # create user
   useradd -m -U -c "RDP User" -G shadow,audio,pulse,pulse-access -s /bin/bash $RDPUSER
@@ -132,10 +136,13 @@ common() {
   # enable puppet
   puppet agent --enable
 
+  echo -e "\tCommon configuration finished."
   return 0
 }
 
 freerdp() {
+  echo -e "\tFreeRDP installation starting.\n"
+
   # install FreeRDP from git
   apt-get install -y build-essential git-core cmake libssl-dev libx11-dev libxext-dev libxinerama-dev \
     libxcursor-dev libxdamage-dev libxv-dev libxkbfile-dev libasound2-dev libcups2-dev libxml2 libxml2-dev \
@@ -154,11 +161,14 @@ freerdp() {
   echo "/usr/local/lib/freerdp" > /etc/ld.so.conf.d/freerdp.conf
   ldconfig
 
+  echo -e "\tFreeRDP installation finished."
   return 0
 }
 
 
 twoxclient() {
+  echo -e "\t2X RDP client installation starting.\n"
+
   dpkg --add-architecture i386
 
   apt-get install -y pcscd:i386 libccid:i386 libpcsclite1:i386 libxpm4:i386 libxml2:i386 libstdc++6:i386
@@ -166,7 +176,21 @@ twoxclient() {
   cd /tmp
   wget $TWOXCLIENT -O ./2xclient.deb
   dpkg -i ./2xclient.deb
+  sleep 1
 
+  local VER=`dpkg -s 2xclient |grep Version |awk '{ print $2 }'`
+  if [ $VER != $TWOXCLIENT_VER ]; then
+    echo -e "\tWARNING!\n\t2xclient version changed from tested. Current: $VER. Tested: $TWOXCLIENT_VER."
+
+    echo -e "\tChangelog:"
+    curl -s $TWOXCLIENT_CHANGELOG |head -20 2>/dev/null
+
+    echo -e "\n\tAutomatic restart cancelled. Read changelog attentively and reboot manually."
+
+    exit 2
+  fi
+
+  echo -e "\t2X RDP client installation finished."
   return 0
 }
 
@@ -177,6 +201,8 @@ if [[ $# -eq 0 ]]; then
   exit 2
 else
   BACKEND=$1
+
+  echo -e "\tStarting to install YATC with $BACKEND RDP backend."
   case $BACKEND in
     freerdp)
       check_user
@@ -193,5 +219,8 @@ else
       exit 2
     ;;
   esac
+
+  echo -e "\tYATC installation finished. Rebooting in 3 seconds."
+  sleep 3
   reboot
 fi

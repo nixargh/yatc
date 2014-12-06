@@ -1,3 +1,9 @@
+YATC 0.9.3:
+  post-install.sh:
+    1. 2xclient source changed to vendor site URL.
+    2. Added 2xclient version check. If version changed Changelog will be displayed. 
+    3. Some output sugar added. 
+
 YATC 0.9.2:
   yatc.py:
     1. Add support of multiple RDP backends: FreeRDP or "2X RDP client".
