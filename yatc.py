@@ -373,11 +373,11 @@ class App():
 
     hostOnline = True
     if not checkRDPPort(host):
-      logging.info("RDP not listening at host1 (%s)" % host)
+      logging.debug("RDP not listening at host1 (%s)" % host)
       host = self.conf["host2"]
       domain = self.conf["domain2"]
       if not checkRDPPort(host):
-        logging.info("RDP not listening at host2 (%s)" % host)
+        logging.debug("RDP not listening at host2 (%s)" % host)
         hostOnline = False
 
     self.setRdpOpt('host', host)
