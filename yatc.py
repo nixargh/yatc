@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.9.3"
+__version__ = "0.9.4"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -313,7 +313,7 @@ class App():
     settingsButton = Button(systemFrame, width = 8, text = "Настройки", command = self.settings)
     settingsButton.pack(side = 'left')
 
-  # command fro RDP connection
+  # command for RDP connection
   #
   def connectRDP(self, event = None):
     logging.info("Starting RDP...")
@@ -411,22 +411,22 @@ class App():
   # command for reboot
   #
   def reboot(self):
-    logging.info("Reboot requested")
+    logging.info("Reboot requested.")
     if self.areYouSureDialog("Перезагрузить компьютер?"):
-      logging.info("Rebooting")
+      logging.info("Rebooting.")
       call(["sudo", "reboot"])
     else:
-      logging.info("Reboot canceled")
+      logging.info("Reboot canceled.")
 
   # command for shutdown
   # 
   def shutdown(self):
-    logging.info("Shutdown requested")
+    logging.info("Shutdown requested.")
     if self.areYouSureDialog("Выключить компьютер?"):
-      logging.info("Shutdowning")
+      logging.info("Shutting down.")
       call(["sudo", "poweroff"])
     else:
-      logging.info("Shutdown canceled")
+      logging.info("Shutdown canceled.")
 
   # command to start Settings window
   #
@@ -483,8 +483,8 @@ class Settings():
     #self.parent.withdraw()
 
     self.window = Toplevel(parent, bd = 2, relief = "raised", cursor = "left_ptr")
-    settingsW = 300
-    settingsH = 250
+    settingsW = 350
+    settingsH = 280
     SW = (self.window.winfo_screenwidth() - settingsW) / 2
     SH = (self.window.winfo_screenheight() - settingsH) / 2
     self.window.geometry("%dx%d+%d+%d" % (settingsW, settingsH, SW, SH))
@@ -499,52 +499,55 @@ class Settings():
   # Frame with settings
   #
   def createSettingsFrame(self):
+    bWidth = 31
+    sWidth = 10
+
     # Settings Frame view
     settingsFrame = Frame(self.window, bd = 2, relief = "sunken")
     settingsFrame.pack(side = "top", anchor = "w", fill = "both")
 
     # First terminal server
-    host1Label = Label(settingsFrame, text = "Сервер 1:", anchor = "w", width = 10)
+    host1Label = Label(settingsFrame, text = "Сервер 1:", anchor = "w", width = sWidth)
     host1Label.grid(row = 1, column = 1)
 
-    host1Entry = Entry(settingsFrame, width = 25)
+    host1Entry = Entry(settingsFrame, width = bWidth)
     host1Entry.grid(row = 1, column = 2, columnspan = 2)
     if self.conf.get("host1"):
       host1Entry.insert(0, self.conf["host1"])
     self.host1 = host1Entry.get
 
     # Second terminal server
-    host2Label = Label(settingsFrame, text = "Сервер 2:", anchor = "w", width = 10)
+    host2Label = Label(settingsFrame, text = "Сервер 2:", anchor = "w", width = sWidth)
     host2Label.grid(row = 2, column = 1)
 
-    host2Entry = Entry(settingsFrame, width = 25)
+    host2Entry = Entry(settingsFrame, width = bWidth)
     host2Entry.grid(row = 2, column = 2, columnspan = 2)
     if self.conf.get("host2"):
       host2Entry.insert(0, self.conf["host2"])
     self.host2 = host2Entry.get
 
     # First domain 
-    domain1Label = Label(settingsFrame, text = "Домен 1:", anchor = "w", width = 10)
+    domain1Label = Label(settingsFrame, text = "Домен 1:", anchor = "w", width = sWidth)
     domain1Label.grid(row = 3, column = 1)
 
-    domain1Entry = Entry(settingsFrame, width = 25)
+    domain1Entry = Entry(settingsFrame, width = bWidth)
     domain1Entry.grid(row = 3, column = 2, columnspan = 2)
     if self.conf.get("domain1"):
       domain1Entry.insert(0, self.conf["domain1"])
     self.domain1 = domain1Entry.get
 
     # Second domain 
-    domain2Label = Label(settingsFrame, text = "Домен 2:", anchor = "w", width = 10)
+    domain2Label = Label(settingsFrame, text = "Домен 2:", anchor = "w", width = sWidth)
     domain2Label.grid(row = 4, column = 1)
 
-    domain2Entry = Entry(settingsFrame, width = 25)
+    domain2Entry = Entry(settingsFrame, width = bWidth)
     domain2Entry.grid(row = 4, column = 2, columnspan = 2)
     if self.conf.get("domain2"):
       domain2Entry.insert(0, self.conf["domain2"])
     self.domain2 = domain2Entry.get
 
     # Check box to save login for future sessions
-    saveUserLabel = Label(settingsFrame, text = "Запоминать логин:", anchor = "w", width = 25)
+    saveUserLabel = Label(settingsFrame, text = "Запоминать логин:", anchor = "w", width = bWidth)
     saveUserLabel.grid(row = 5, column = 1, columnspan = 2)
 
     self.saveUser = IntVar()
@@ -555,7 +558,7 @@ class Settings():
         saveUserCheckbutton.select()
     
     # Check box to enable/disable RemoteFX 
-    rfxLabel = Label(settingsFrame, text = "Использовать RemoteFX:", anchor = "w", width = 25)
+    rfxLabel = Label(settingsFrame, text = "Использовать RemoteFX:", anchor = "w", width = bWidth)
     rfxLabel.grid(row = 6, column = 1, columnspan = 2)
 
     self.rfx = IntVar()
@@ -566,7 +569,7 @@ class Settings():
         rfxCheckbutton.select()
 
     # Check box to enable/disable USB storage redirect 
-    usbLabel = Label(settingsFrame, text = "Пробросить USB накопитель:", anchor = "w", width = 25)
+    usbLabel = Label(settingsFrame, text = "Пробросить USB накопитель:", anchor = "w", width = bWidth)
     usbLabel.grid(row = 7, column = 1, columnspan = 2)
 
     self.usb = IntVar()
@@ -577,7 +580,7 @@ class Settings():
         usbCheckbutton.select()
 
     # Check box to enable/disable CDROM redirect 
-    cdromLabel = Label(settingsFrame, text = "Пробросить CDROM:", anchor = "w", width = 25)
+    cdromLabel = Label(settingsFrame, text = "Пробросить CDROM:", anchor = "w", width = bWidth)
     cdromLabel.grid(row = 8, column = 1, columnspan = 2)
 
     self.cdrom = IntVar()
@@ -588,7 +591,7 @@ class Settings():
         cdromCheckbutton.select()
 
     # Check box to enable/disable sound forwarding
-    soundLabel = Label(settingsFrame, text = "Перенаправлять звук:", anchor = "w", width = 25)
+    soundLabel = Label(settingsFrame, text = "Перенаправлять звук:", anchor = "w", width = bWidth)
     soundLabel.grid(row = 9, column = 1, columnspan = 2)
 
     self.sound = IntVar()
@@ -599,13 +602,26 @@ class Settings():
         soundCheckbutton.select()
 
     # show screen resolution at settings screen
-    screenResLabel = Label(settingsFrame, text = "Разрешение экрана:", anchor = "w", width = 25)
-    screenResLabel.grid(row = 10, column = 1, columnspan = 2)
+    screenResLabel = Label(settingsFrame, text = "Разрешение экрана:", anchor = "w", width = bWidth)
+    screenResLabel.grid(row = sWidth, column = 1, columnspan = 2)
 
-    screenResEntry = Entry(settingsFrame, width = 10)
-    screenResEntry.grid(row = 10, column = 3, columnspan = 1)
+    screenResEntry = Entry(settingsFrame, width = sWidth)
+    screenResEntry.grid(row = sWidth, column = 3, columnspan = 1)
     screenResEntry.insert(0, self.conf["screenRes"])
     screenResEntry.config(state = "readonly")
+
+    # Option to set shutdown after RDP inactivity
+    rdpInactiveLabel = Label(settingsFrame, text = "Выключать если RDP не активно (сек):", anchor = "w", width = bWidth)
+    rdpInactiveLabel.grid(row = 11, column = 1, columnspan = 2)
+
+    rdpInactiveEntry = Entry(settingsFrame, width = sWidth)
+    rdpInactiveEntry.grid(row = 11, column = 3, columnspan = 1)
+    if self.conf.get("rdpInactive"):
+      rdpInactiveEntry.insert(0, int(self.conf["rdpInactive"]))
+    else:
+      rdpInactiveEntry.insert(0, 600)
+    self.rdpInactive = rdpInactiveEntry.get
+
 
   # command to close Settings window and save settings
   #
@@ -619,10 +635,72 @@ class Settings():
     self.conf["usb"] = self.usb.get()
     self.conf["cdrom"] = self.cdrom.get()
     self.conf["sound"] = self.sound.get()
+    self.conf["rdpInactive"] = self.rdpInactive()
     config.put(self.conf)
     config.write()
     self.window.destroy()
     #self.parent.deiconify()
+
+
+# Watcher class
+#
+class Watcher():
+  def __init__(self, config):
+    import threading
+    logging.info("Initializing watcher.")
+
+    self.conf = config.get()
+    if not self.conf.get("rdpInactive"):
+      self.conf["rdpInactive"] = 600
+      config.put(self.conf)
+    inactive = int(self.conf["rdpInactive"])
+    if inactive <= 0:
+      logging.info("RDP inactivity threshold <= 0. Stopping watcher.")
+      self.exit = True
+    else:
+      logging.info("RDP inactivity threshold = %d." % inactive)
+      self.exit = False
+
+    self.thread = threading.Thread(target=self.check_loop, args=(inactive,))
+    self.thread.start()
+
+  # Set self.exit to False to end check_loop and stop Watcher.
+  #
+  def stop(self):
+    logging.info("Stopping watcher.")
+    self.exit = True
+
+  # Shutdown if no connection was found for _inactive_ seconds
+  #
+  def check_loop(self, inactive):
+    spent = 0
+    pause = 10
+    while (self.exit == False):
+      if self.check_rdp():
+        spent = 0
+        logging.debug("Established RDP connection found.")
+      else:
+        spent = spent + pause
+        logging.debug("No established RDP connection for %d seconds." % spent)
+        if spent >= inactive:
+          logging.info("Shutting down after %d of RDP inactivity." % inactive)
+          call(["sudo", "poweroff"])
+      time.sleep(pause)
+
+  # Check if some TCP connecton to port 3389 established.
+  #
+  def check_rdp(self):
+    try:
+      netstat = check_output(['netstat', '-nt'], stderr=STDOUT).decode('utf-8')
+      netstat = netstat.split(os.linesep)
+      for line in netstat:
+          if 'ESTABLISHED' in line:
+            if ':3389' in line:
+              return True
+      return False
+    except CalledProcessError as err:
+      logging.error("Failed to get netstat output. Exit code: %s. Output: %s." % (err.returncode, err.output))
+      return True
 
 ##############################################################################
 # insert few more path to libraries
@@ -659,7 +737,15 @@ logging.info("Starting YATC (%s)." % __version__)
 config = Config()
 config.read()
 
+# start watcher
+watch = Watcher(config)
+
 # start application
 app = App(rdpBackend, config)
 
+# stop watcher
+watch.stop()
+
+# exit application
+logging.info("Exiting YATC.")
 exit(0)

@@ -1,7 +1,7 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.9.3"
+VERSION="0.9.4"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
@@ -9,7 +9,7 @@ TIMEZONE="Europe/Moscow"
 FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
-YATC_BRANCH="2x_client"
+YATC_BRANCH="master"
 TWOXCLIENT="http://www.2x.com/downloads/rdp-clients/2xclient.deb"
 TWOXCLIENT_VER="12.0.2270"
 TWOXCLIENT_CHANGELOG="http://www.2x.com/downloads/rdp-clients/Linux-ChangeLog.txt"

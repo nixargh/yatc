@@ -1,3 +1,7 @@
+YATC 0.9.4:
+  yatc.py:
+    1. Add option to shutdown thin client if RDP not connected for some time.
+
 YATC 0.9.3:
   post-install.sh:
     1. 2xclient source changed to vendor site URL.
