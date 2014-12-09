@@ -618,8 +618,6 @@ class Settings():
     rdpInactiveEntry.grid(row = 11, column = 3, columnspan = 1)
     if self.conf.get("rdpInactive"):
       rdpInactiveEntry.insert(0, int(self.conf["rdpInactive"]))
-    else:
-      rdpInactiveEntry.insert(0, 600)
     self.rdpInactive = rdpInactiveEntry.get
 
 
@@ -648,10 +646,11 @@ class Watcher():
   def __init__(self, config):
     import threading
     logging.info("Initializing watcher.")
+    defaultThreshold = 10800
 
     self.conf = config.get()
     if not self.conf.get("rdpInactive"):
-      self.conf["rdpInactive"] = 600
+      self.conf["rdpInactive"] = defaultThreshold
       config.put(self.conf)
     inactive = int(self.conf["rdpInactive"])
     if inactive <= 0:
@@ -683,7 +682,7 @@ class Watcher():
         spent = spent + pause
         logging.debug("No established RDP connection for %d seconds." % spent)
         if spent >= inactive:
-          logging.info("Shutting down after %d of RDP inactivity." % inactive)
+          logging.info("Shutting down after %d seconds of RDP inactivity." % inactive)
           call(["sudo", "poweroff"])
       time.sleep(pause)
 
