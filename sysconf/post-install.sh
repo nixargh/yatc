@@ -38,7 +38,7 @@ common() {
   # install required packages
   apt-get update
   apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs libasound2 \
-    libasound2-plugins alsa-utils alsa-oss pulseaudio pulseaudio-utils dbus-x11:i386 curl
+    libasound2-plugins libasound2-plugins:i386 alsa-utils alsa-oss pulseaudio pulseaudio-utils dbus-x11 curl
 
   # create user
   useradd -m -U -c "RDP User" -G shadow,audio,pulse,pulse-access -s /bin/bash $RDPUSER
