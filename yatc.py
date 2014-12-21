@@ -240,7 +240,7 @@ class App():
   # Idiot's dialog.
   #
   def areYouSureDialog(self, question):
-    logging.info("Show re-asking dialog")
+    logging.info("Showing re-asking dialog.")
 
     self.root.withdraw()
 
@@ -249,6 +249,15 @@ class App():
     else:
       self.root.deiconify()
       return False
+  
+  # Error dialog.
+  #
+  def errorDialog(self, question):
+    logging.info("Showing error dialog.")
+
+    self.root.withdraw()
+    messagebox.showerror(message = question)
+    self.root.deiconify()
   
   # Connection button
   #
@@ -398,6 +407,7 @@ class App():
           logging.info("%s exit code: %s. It's normal after session disconection." % (self.rdpBackend, err.returncode) )
         elif err.returncode == 131 and self.rdpBackend == 'freerdp':
           logging.error("%s exit code: %s. Bad credentials." % (self.rdpBackend, err.returncode) )
+          self.errorDialog("Логин или пароль не верны. Проверьте и повторите попытку.")
         else:
           logging.error("%s exit code: %s." % (self.rdpBackend, err.returncode) )
           logging.error("%s output:\n%s." % (self.rdpBackend, err.output) )
@@ -410,6 +420,7 @@ class App():
       self.root.deiconify()
     else:
       logging.error("All RDP destinations are offline.")
+      self.errorDialog("Терминальный сервер не доступен.")
 
 
   # command for reboot

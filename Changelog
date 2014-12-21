@@ -3,6 +3,10 @@ YATC 0.9.5:
     1. Stripping of string entered to login and password fields added.
     2. BUG fixed: freerdp - can't establish connection again without reboot.
       The reason was duplication  of connection parameters in dictionary.
+    3. Added "Error" dialog windows after unsuccessfull RDP connection.
+
+  post-install.sh:
+    1. Axier options changed to make Master and PCM sound louder (100%).
 
 YATC 0.9.4:
   yatc.py:

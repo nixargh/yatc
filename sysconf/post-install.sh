@@ -61,8 +61,8 @@ common() {
   service ssh restart
 
   # Unmute alsa & pulseaudio
-  amixer set PCM unmute || echo "Can't unmute PCM. Skipping..."
-  amixer set Master unmute
+  amixer set PCM 100 unmute || echo "Can't unmute PCM. Skipping..."
+  amixer set Master 100 unmute
   sudo -i -u $RDPUSER dbus-launch --exit-with-session pulseaudio --daemon
   sleep 1
   sudo -i -u $RDPUSER pactl set-sink-mute 0 0
