@@ -1,3 +1,9 @@
+YATC 0.9.5:
+  yatc.py:
+    1. Stripping of string entered to login and password fields added.
+    2. BUG fixed: freerdp - can't establish connection again without reboot.
+      The reason was duplication  of connection parameters in dictionary.
+
 YATC 0.9.4:
   yatc.py:
     1. Add option to shutdown thin client if RDP not connected for some time.

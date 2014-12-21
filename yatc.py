@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.9.4"
+__version__ = "0.9.5"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -92,7 +92,7 @@ def writeVersion(v_file):
 # Logging
 #
 def createLog():
-  logging.basicConfig(filename = logFile, level = logging.INFO, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
+  logging.basicConfig(filename = logFile, level = logging.DEBUG, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
 ##############################################################################
 
 # Operations with configuration
@@ -319,10 +319,10 @@ class App():
     logging.info("Starting RDP...")
 
     # get user login
-    self.conf["login"] = self.loginEntry.get()
+    self.conf["login"] = self.loginEntry.get().strip()
 
     # get user password and clear Entry
-    password = self.passwordEntry.get()
+    password = self.passwordEntry.get().strip()
     self.passwordEntry.delete(0, END)
 
     # create List of arguments for system call
@@ -396,12 +396,16 @@ class App():
       except CalledProcessError as err:
         if err.returncode == 255 and self.rdpBackend == 'freerdp':
           logging.info("%s exit code: %s. It's normal after session disconection." % (self.rdpBackend, err.returncode) )
+        elif err.returncode == 131 and self.rdpBackend == 'freerdp':
+          logging.error("%s exit code: %s. Bad credentials." % (self.rdpBackend, err.returncode) )
         else:
           logging.error("%s exit code: %s." % (self.rdpBackend, err.returncode) )
           logging.error("%s output:\n%s." % (self.rdpBackend, err.output) )
       except BaseException as err:
         logging.error("Failed to connect: %s." % err)
 
+      # clear RDP connection options
+      self.rdp.clear()
       # show root window
       self.root.deiconify()
     else:
