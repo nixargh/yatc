@@ -92,7 +92,7 @@ def writeVersion(v_file):
 # Logging
 #
 def createLog():
-  logging.basicConfig(filename = logFile, level = logging.DEBUG, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
+  logging.basicConfig(filename = logFile, level = logging.INFO, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
 ##############################################################################
 
 # Operations with configuration
@@ -255,9 +255,9 @@ class App():
   def errorDialog(self, question):
     logging.info("Showing error dialog.")
 
-    #self.root.withdraw()
+    self.root.withdraw()
     messagebox.showerror(parent = self.root, message = question )
-    #self.root.deiconify()
+    self.root.deiconify()
   
   # Connection button
   #
@@ -407,7 +407,7 @@ class App():
           logging.info("%s exit code: %s. It's normal after session disconection." % (self.rdpBackend, err.returncode) )
         elif err.returncode == 131 and self.rdpBackend == 'freerdp':
           logging.error("%s exit code: %s. Bad credentials." % (self.rdpBackend, err.returncode) )
-          self.errorDialog("Логин или пароль не верны. Проверьте и повторите попытку.")
+          self.errorDialog("Ошибка входа в систему: неизвестное имя пользователя или неверный пароль.")
         else:
           logging.error("%s exit code: %s." % (self.rdpBackend, err.returncode) )
           logging.error("%s output:\n%s." % (self.rdpBackend, err.output) )
