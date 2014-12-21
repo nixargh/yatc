@@ -6,7 +6,7 @@ YATC 0.9.5:
     3. Added "Error" dialog windows after unsuccessfull RDP connection.
 
   post-install.sh:
-    1. Axier options changed to make Master and PCM sound louder (100%).
+    1. Amixer options changed to make Master and PCM sound louder (100%).
 
 YATC 0.9.4:
   yatc.py:

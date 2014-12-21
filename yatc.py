@@ -244,7 +244,7 @@ class App():
 
     self.root.withdraw()
 
-    if messagebox.askokcancel(message = question):
+    if messagebox.askokcancel(parent = self.root, message = question):
       return True
     else:
       self.root.deiconify()
@@ -255,9 +255,9 @@ class App():
   def errorDialog(self, question):
     logging.info("Showing error dialog.")
 
-    self.root.withdraw()
-    messagebox.showerror(message = question)
-    self.root.deiconify()
+    #self.root.withdraw()
+    messagebox.showerror(parent = self.root, message = question )
+    #self.root.deiconify()
   
   # Connection button
   #
