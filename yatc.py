@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.9.5"
+__version__ = "0.9.6"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -408,6 +408,8 @@ class App():
         elif err.returncode == 131 and self.rdpBackend == 'freerdp':
           logging.error("%s exit code: %s. Bad credentials." % (self.rdpBackend, err.returncode) )
           self.errorDialog("Ошибка входа в систему: неизвестное имя пользователя или неверный пароль.")
+        elif (err.returncode == 3 and self.rdpBackend == 'freerdp') or (err.returncode == 69 and self.rdpBackend == '2xclient'):
+          logging.error("%s exit code: %s. Server idle timeout reached." % (self.rdpBackend, err.returncode) )
         else:
           logging.error("%s exit code: %s." % (self.rdpBackend, err.returncode) )
           logging.error("%s output:\n%s." % (self.rdpBackend, err.output) )

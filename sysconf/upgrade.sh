@@ -1,7 +1,7 @@
 #!/bin/bash
 # script to upgrade YATC on Ubuntu 12.04 - 14.04
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.9.5"
+VERSION="0.9.6"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"

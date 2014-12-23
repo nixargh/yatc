@@ -1,3 +1,7 @@
+YATC 0.9.6:
+  yatc.py:
+    1. "Server idle timeout reached" exception handling added.
+
 YATC 0.9.5:
   yatc.py:
     1. Stripping of string entered to login and password fields added.

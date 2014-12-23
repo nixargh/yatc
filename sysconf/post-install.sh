@@ -1,7 +1,7 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.9.5"
+VERSION="0.9.6"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
