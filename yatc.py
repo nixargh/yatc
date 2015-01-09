@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.9.6"
+__version__ = "0.9.7"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -87,7 +87,6 @@ def writeVersion(v_file):
     file = open(v_file, "wb")
     file.write(bytes(__version__ + "\n", 'UTF-8'))
     file.close()
-
 
 # Logging
 #
@@ -199,7 +198,7 @@ class App():
 
     # set root window geometry
     rootW = 500
-    rootH = 300
+    rootH = 330
     SW = (self.root.winfo_screenwidth() - rootW) / 2
     SH = (self.root.winfo_screenheight() - rootH) / 2
     self.root.geometry("%dx%d+%d+%d" % (rootW, rootH, SW, SH))
@@ -213,6 +212,7 @@ class App():
     versionLabel.pack(side = "bottom", anchor = "e")
 
     # start buttons creation
+    self.infoFrame()
     self.connectFrame()
     self.systemFrame()
     
@@ -250,28 +250,29 @@ class App():
       self.root.deiconify()
       return False
   
-  # Error dialog.
+  # Information frame.
   #
-  def errorDialog(self, question):
-    logging.info("Showing error dialog.")
+  def infoFrame(self):
+    infoFrame = Frame(self.mainFrame)
+    infoFrame.place(x = 50, y = 30, width = 400, height = 50)
 
-    self.root.withdraw()
-    messagebox.showerror(parent = self.root, message = question )
-    self.root.deiconify()
+    self.infoVar = StringVar()
+    infoLabel = Label(infoFrame, width = 400, height = 50, anchor = "w", wraplength = 380, justify = "left", fg = "red", textvariable = self.infoVar)
+    infoLabel.place(x = 10, y = 5, width = 380, height = 40)
   
-  # Connection button
+  # Connection frame.
   #
   def connectFrame(self):
     connectFrame = Frame(self.mainFrame, bd = 2, relief = "groove")
-    connectFrame.place(x = 50, y = 50, width = 400, height = 150)
-
-    # Button to start RDP connection
-    self.connectButton = Button(connectFrame, text = "Подключиться", anchor = "s", pady = 20, font = "bold", state = "disabled", command = self.connectRDP)
-    self.connectButton.place(x = 50, y = 70, width = 300, height = 65)
+    connectFrame.place(x = 50, y = 80, width = 400, height = 150)
 
     # Frame to place login and password things
     credFrame = Frame(connectFrame)
     credFrame.place(x = 50, y = 10, width = 300, height = 50)
+
+    # Button to start RDP connection
+    self.connectButton = Button(connectFrame, text = "Подключиться", anchor = "s", pady = 20, font = "bold", state = "disabled", command = self.connectRDP)
+    self.connectButton.place(x = 50, y = 70, width = 300, height = 65)
 
     # login things
     loginLabel = Label(credFrame, width = 10, text = "Логин:", anchor = "w")
@@ -311,7 +312,7 @@ class App():
   #
   def systemFrame(self):
     systemFrame = Frame(self.mainFrame)
-    systemFrame.place(x = 50, y = 250, width = 400 )
+    systemFrame.place(x = 50, y = 280, width = 400 )
 
     rebootButton = Button(systemFrame, width = 10, text = "Перезагрузить", command = self.reboot)
     rebootButton.pack(side = 'right')
@@ -402,28 +403,42 @@ class App():
         logging.debug("RDP connection string: %s." % self.rdp)
         check_output(self.rdp, universal_newlines=True, stderr=STDOUT)
         logging.info("RDP session ended.")
+
+        # clear inforamtional label
+        self.infoVar.set("")
       except CalledProcessError as err:
         if err.returncode == 255 and self.rdpBackend == 'freerdp':
           logging.info("%s exit code: %s. It's normal after session disconection." % (self.rdpBackend, err.returncode) )
+
+          # clear inforamtional label
+          self.infoVar.set("")
         elif err.returncode == 131 and self.rdpBackend == 'freerdp':
           logging.error("%s exit code: %s. Bad credentials." % (self.rdpBackend, err.returncode) )
-          self.errorDialog("Ошибка входа в систему: неизвестное имя пользователя или неверный пароль.")
+          self.infoVar.set("Ошибка входа в систему: неизвестное имя пользователя или неверный пароль.")
+        elif err.returncode == 71 and self.rdpBackend == '2xclient':
+          logging.error("%s exit code: %s. Another user connected to the remote computer, so your connection was lost." % (self.rdpBackend, err.returncode) )
+          self.infoVar.set("Ошибка входа в систему: пользователь уже подключен к серверу или достигнут предел количества соединений.")
+        elif err.returncode == 75 and self.rdpBackend == '2xclient':
+          logging.error("%s exit code: %s. Insufficient privileges." % (self.rdpBackend, err.returncode) )
+          self.infoVar.set("Ошибка входа в систему: не достаточно привелегий.")
         elif (err.returncode == 3 and self.rdpBackend == 'freerdp') or (err.returncode == 69 and self.rdpBackend == '2xclient'):
           logging.error("%s exit code: %s. Server idle timeout reached." % (self.rdpBackend, err.returncode) )
+          self.infoVar.set("Сервер завершил соединение: превышено допустимое время простоя.")
         else:
           logging.error("%s exit code: %s." % (self.rdpBackend, err.returncode) )
           logging.error("%s output:\n%s." % (self.rdpBackend, err.output) )
       except BaseException as err:
         logging.error("Failed to connect: %s." % err)
+        self.infoVar.set("Не удалось установить соединение.")
 
-      # clear RDP connection options
-      self.rdp.clear()
       # show root window
       self.root.deiconify()
     else:
       logging.error("All RDP destinations are offline.")
-      self.errorDialog("Терминальный сервер не доступен.")
+      self.infoVar.set("Терминальный сервер не доступен.")
 
+    # clear RDP connection options
+    self.rdp.clear()
 
   # command for reboot
   #

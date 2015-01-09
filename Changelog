@@ -1,3 +1,10 @@
+YATC 0.9.7:
+  yatc.py:
+    1. Switched from ugly error windows to pretty informational frame. It's placed right above login frame.
+    2. BUG fixed: 2xclient - can't establish new connection after unsuccessful connection without reboot.
+      The reason was duplication  of connection parameters in dictionary.
+    3. Some new RDP errors exceptions added.
+
 YATC 0.9.6:
   yatc.py:
     1. "Server idle timeout reached" exception handling added.
