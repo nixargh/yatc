@@ -8,7 +8,7 @@ RDPUSER="user"
 FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
-YATC_BRANCH="master"
+YATC_BRANCH="dev"
 TMP_DIR="/tmp"
 ###############################################################################
 set -u -e
