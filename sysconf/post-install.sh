@@ -1,7 +1,7 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.9.8"
+VERSION="0.9.9"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
@@ -9,10 +9,9 @@ TIMEZONE="Europe/Moscow"
 FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
-YATC_BRANCH="master"
-TWOXCLIENT="http://www.2x.com/downloads/rdp-clients/2xclient.deb"
+YATC_BRANCH="dev"
 TWOXCLIENT_VER="14.0.3213"
-TWOXCLIENT_CHANGELOG="http://www.2x.com/downloads/rdp-clients/Linux-ChangeLog.txt"
+TWOXCLIENT="http://www.2x.com/downloads/builds/applicationserver/${TWOXCLIENT}/2XClient.deb"
 ###############################################################################
 set -u -e
 
@@ -61,8 +60,9 @@ common() {
   service ssh restart
 
   # Unmute alsa & pulseaudio
-  amixer set PCM 100 unmute || echo "Can't unmute PCM. Skipping..."
-  amixer set Master 100 unmute
+  for DEV in "PCM" "Master"; do
+	  amixer set $DEV 100 unmute || echo "Can't unmute $DEV. Skipping..."
+  done
   sudo -i -u $RDPUSER dbus-launch --exit-with-session pulseaudio --daemon
   sleep 1
   sudo -i -u $RDPUSER pactl set-sink-mute 0 0
@@ -176,19 +176,6 @@ twoxclient() {
   cd /tmp
   wget $TWOXCLIENT -O ./2xclient.deb
   dpkg -i ./2xclient.deb
-  sleep 1
-
-  local VER=`dpkg -s 2xclient |grep Version |awk '{ print $2 }'`
-  if [ $VER != $TWOXCLIENT_VER ]; then
-    echo -e "\tWARNING!\n\t2xclient version changed from tested. Current: $VER. Tested: $TWOXCLIENT_VER."
-
-    echo -e "\tChangelog:"
-    curl -s $TWOXCLIENT_CHANGELOG |head -20 2>/dev/null
-
-    echo -e "\n\tAutomatic restart cancelled. Read changelog attentively and reboot manually."
-
-    exit 2
-  fi
 
   echo -e "\t2X RDP client installation finished."
   return 0
