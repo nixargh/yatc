@@ -28,9 +28,9 @@ import logging
 import threading
 import re
 
+from subprocess import *
 from tkinter import *
 from tkinter import messagebox
-from subprocess import *
 from simplepam import authenticate
 ##############################################################################
 logFile = os.path.expanduser("~/.yatc/yatc.log")
@@ -748,6 +748,7 @@ class Mounter:
     def mount_loop(self):
         pause = 1
         block_dir = "/sys/block"
+        mounted = []
 
         while (self.exit == False):
             for entry in os.listdir(block_dir):
@@ -757,11 +758,19 @@ class Mounter:
                         model = self.get_model(device)
                         for subentry in os.listdir(device):
                             if re.match("%s\d" % entry, subentry):
-                                partition = "/dev/%s/%s" % (entry, subentry)
+                                partition = "/dev/%s" % subentry
                                 if not self.mounted(partition):
-                                    self.mount(partition)
-                                else:
-                                    self.clean(partition)
+                                    if self.mount(partition, model):
+                                        mounted.append(partition)
+
+            for partition in mounted:
+                part = re.search("/dev/((\D+)\d)", partition)
+                proc_path = "/sys/block/%s/%s/partition" % (part.group(2), part.group(1))
+                try:
+                    open(proc_path, "r")
+                except:
+                    if self.clean(partition, model):
+                        mounted.remove(partition)
 
             time.sleep(pause)
 
@@ -783,18 +792,47 @@ class Mounter:
     # Check if partition mounted
     #
     def mounted(self, partition):
-        pass 
+        with open("/proc/mounts", "r") as mounts_file:
+            for line in mounts_file:
+                if re.match("%s\s" % partition, line):
+                    return True
+        return False
 
     # Mount partition
     #
-    def mount(self, partition):
-        print("Mounting %s." % partition)
-        pass
+    def mount(self, partition, model):
+        logging.info("Mounting %s." % partition)
+        root = "/media/usbdisk"
+        directory = "%s/%s" % (root, model)
+        if not os.path.isdir(directory):
+            os.makedirs(directory)
+        ec = call(["sudo", "mount", "-osync,nodev,nosuid,umask=000", partition, directory])
+        if ec == 0:
+            logging.info("%s mounted successfully to %s." % (partition,
+                directory))
+            return True
+        else:
+            logging.error("Failed to mount %s to %s. Exit code: %i." %
+                    (partition, directory, ec))
+            return False
 
     # Cleanup mount point after partition removed
     #
-    def clean(self, partition):
-        pass
+    def clean(self, partition, model):
+        root = "/media/usbdisk"
+        directory = "%s/%s" % (root, model)
+        logging.info("Cleaning directory %s." % directory)
+        if os.path.isdir(directory):
+            ec = call(["sudo", "umount", "-l", partition])
+            if ec == 0:
+                logging.info("%s umounted successfully." % partition)
+                os.rmdir(directory)
+                return True
+            else:
+                logging.error("Failed to umount %s. Exit code: %i." %
+                        (partition, ec))
+                return False
+
 
     # Set self.exit to False to end mount_loop and stop Mounter.
     #
