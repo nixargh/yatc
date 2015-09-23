@@ -25,9 +25,13 @@ import sys
 import os
 import time
 import logging
+import threading
+
 from tkinter import *
 from tkinter import messagebox
 from subprocess import *
+from simplepam import authenticate
+from crypt import Crypt
 ##############################################################################
 logFile = os.path.expanduser("~/.yatc/yatc.log")
 versionFile = os.path.expanduser("~/.yatc/version")
@@ -42,7 +46,6 @@ def chdirToHome():
 # authenticate user using PAM
 #
 def checkUser(user, password):
-    from simplepam import authenticate
     auth = authenticate(user, password)
     if auth:
         logging.info("%s authenticated." % user)
@@ -98,8 +101,6 @@ def createLog():
 #
 class Config():
     def __init__(self):
-        from crypt import Crypt
-
         self.configFile = os.path.expanduser("~/.yatc/yatc.conf")
         self.config = {}
         self.crypt = Crypt()
@@ -676,7 +677,6 @@ class Settings():
 #
 class Watcher():
     def __init__(self, config):
-        import threading
         logging.info("Initializing watcher.")
         defaultThreshold = 10800
 
@@ -733,6 +733,29 @@ class Watcher():
             logging.error("Failed to get netstat output. Exit code: %s. Output: %s." % (err.returncode, err.output))
             return True
 
+# Mounter class
+#
+class Mounter:
+    def __init__(self):
+        logging.info("Starting mounter.")
+        self.thread = threading.Thread(target=self.mount_loop)
+        self.thread.start()
+
+
+    def mount_loop(self):
+        pause = 1
+        while (self.exit == False):
+            for entry in listdir("/sys/block"):
+                if entry == 
+
+            time.sleep(pause)
+
+    # Set self.exit to False to end mount_loop and stop Mounter.
+    #
+    def stop(self):
+        logging.info("Stopping mounter.")
+        self.exit = True
+
 ##############################################################################
 # insert few more path to libraries
 sys.path.insert(1,"./lib")
@@ -771,8 +794,14 @@ config.read()
 # start watcher
 watch = Watcher(config)
 
+# start mounter
+mount = Mounter()
+
 # start application
 app = App(rdpBackend, config)
+
+# stop mounter
+mount.stop()
 
 # stop watcher
 watch.stop()

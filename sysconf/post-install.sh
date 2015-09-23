@@ -9,9 +9,9 @@ TIMEZONE="Europe/Moscow"
 FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
-YATC_BRANCH="dev"
+YATC_BRANCH="devel"
 TWOXCLIENT_VER="14.0.3213"
-TWOXCLIENT="http://www.2x.com/downloads/builds/applicationserver/${TWOXCLIENT}/2XClient.deb"
+TWOXCLIENT="http://www.2x.com/downloads/builds/applicationserver/${TWOXCLIENT_VER}/2XClient.deb"
 ###############################################################################
 set -u -e
 
