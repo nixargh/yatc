@@ -26,12 +26,12 @@ import os
 import time
 import logging
 import threading
+import re
 
 from tkinter import *
 from tkinter import messagebox
 from subprocess import *
 from simplepam import authenticate
-from crypt import Crypt
 ##############################################################################
 logFile = os.path.expanduser("~/.yatc/yatc.log")
 versionFile = os.path.expanduser("~/.yatc/version")
@@ -101,6 +101,7 @@ def createLog():
 #
 class Config():
     def __init__(self):
+        from crypt import Crypt
         self.configFile = os.path.expanduser("~/.yatc/yatc.conf")
         self.config = {}
         self.crypt = Crypt()
@@ -738,17 +739,62 @@ class Watcher():
 class Mounter:
     def __init__(self):
         logging.info("Starting mounter.")
+        self.exit = False
         self.thread = threading.Thread(target=self.mount_loop)
         self.thread.start()
 
-
+    # Look for removable devices
+    #
     def mount_loop(self):
         pause = 1
+        block_dir = "/sys/block"
+
         while (self.exit == False):
-            for entry in listdir("/sys/block"):
-                if entry == 
+            for entry in os.listdir(block_dir):
+                if re.match("sd.", entry):
+                    device = "%s/%s" % (block_dir, entry)
+                    if self.removable(device):
+                        model = self.get_model(device)
+                        for subentry in os.listdir(device):
+                            if re.match("%s\d" % entry, subentry):
+                                partition = "/dev/%s/%s" % (entry, subentry)
+                                if not self.mounted(partition):
+                                    self.mount(partition)
+                                else:
+                                    self.clean(partition)
 
             time.sleep(pause)
+
+    # Check device is removable
+    #
+    def removable(self, dev):
+        with open("%s/removable" % dev, "r") as rem_file:
+            if int(rem_file.read()) == 1:
+                return True
+        return False
+
+    # Get device model
+    #
+    def get_model(self, dev):
+        with open("%s/device/model" % dev, "r") as model_file:
+            model = model_file.read().rstrip(' \n').replace(" ", "_")
+        return model
+
+    # Check if partition mounted
+    #
+    def mounted(self, partition):
+        pass 
+
+    # Mount partition
+    #
+    def mount(self, partition):
+        print("Mounting %s." % partition)
+        pass
+
+    # Cleanup mount point after partition removed
+    #
+    def clean(self, partition):
+        pass
 
     # Set self.exit to False to end mount_loop and stop Mounter.
     #
