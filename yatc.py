@@ -739,16 +739,26 @@ class Watcher():
 class Mounter:
     def __init__(self):
         logging.info("Starting mounter.")
+        self.root = "/media/usbdisk"
+        self.clean_dir()
         self.exit = False
         self.thread = threading.Thread(target=self.mount_loop)
         self.thread.start()
+
+    # Remove all subdirectories from self.root dir
+    #
+    def clean_dir(self):
+        logging.info("Cleaning %s directory." % self.root)
+        for entry in os.listdir(self.root):
+            directory = "%s/%s" % (self.root, entry)
+            os.rmdir(directory)
 
     # Look for removable devices
     #
     def mount_loop(self):
         pause = 1
         block_dir = "/sys/block"
-        mounted = []
+        mounted = dict()
 
         while (self.exit == False):
             for entry in os.listdir(block_dir):
@@ -761,16 +771,18 @@ class Mounter:
                                 partition = "/dev/%s" % subentry
                                 if not self.mounted(partition):
                                     if self.mount(partition, model):
-                                        mounted.append(partition)
+                                        mounted[partition] = model
 
+            new_mounted = dict(mounted)
             for partition in mounted:
                 part = re.search("/dev/((\D+)\d)", partition)
                 proc_path = "/sys/block/%s/%s/partition" % (part.group(2), part.group(1))
                 try:
                     open(proc_path, "r")
                 except:
-                    if self.clean(partition, model):
-                        mounted.remove(partition)
+                    if self.clean(partition, mounted[partition]):
+                        del new_mounted[partition] 
+            mounted = dict(new_mounted)
 
             time.sleep(pause)
 
@@ -802,8 +814,7 @@ class Mounter:
     #
     def mount(self, partition, model):
         logging.info("Mounting %s." % partition)
-        root = "/media/usbdisk"
-        directory = "%s/%s" % (root, model)
+        directory = "%s/%s" % (self.root, model)
         if not os.path.isdir(directory):
             os.makedirs(directory)
         ec = call(["sudo", "mount", "-osync,nodev,nosuid,umask=000", partition, directory])
@@ -819,8 +830,7 @@ class Mounter:
     # Cleanup mount point after partition removed
     #
     def clean(self, partition, model):
-        root = "/media/usbdisk"
-        directory = "%s/%s" % (root, model)
+        directory = "%s/%s" % (self.root, model)
         logging.info("Cleaning directory %s." % directory)
         if os.path.isdir(directory):
             ec = call(["sudo", "umount", "-l", partition])
