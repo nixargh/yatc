@@ -10,7 +10,7 @@ FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
 YATC_BRANCH="devel"
-TWOXCLIENT_VER="14.0.3213"
+TWOXCLIENT_VER="14.1.3417"
 TWOXCLIENT="http://www.2x.com/downloads/builds/applicationserver/${TWOXCLIENT_VER}/2XClient.deb"
 ###############################################################################
 set -u -e
@@ -36,7 +36,7 @@ common() {
 
   # install required packages
   apt-get update
-  apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet autofs libasound2 \
+  apt-get install -y python3 python3-tk python3-crypto git xorg vim cups puppet libasound2 \
     libasound2-plugins libasound2-plugins:i386 alsa-utils alsa-oss pulseaudio pulseaudio-utils dbus-x11 curl
 
   # create user
@@ -129,9 +129,9 @@ common() {
   sed -i '{s/localhost/0.0.0.0/}' $CUPSD_CONF
   service cups restart
 
-  # setup autofs
-  echo -e "usbdisk\t-fstype=auto,async,nodev,nosuid,umask=000\t:/dev/sdb1" >> /etc/auto.misc
-  echo -e "/media\t/etc/auto.misc\t--timeout=20\n" >> /etc/auto.master
+  # create directory to store mountpoints
+  mkdir /media/usbdisk
+  chown $RDPUSER /media/usbdisk
 
   # enable puppet
   puppet agent --enable

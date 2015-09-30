@@ -8,8 +8,10 @@ RDPUSER="user"
 FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
-YATC_BRANCH="master"
+YATC_BRANCH="devel"
 TMP_DIR="/tmp"
+TWOXCLIENT_VER="14.1.3417"
+TWOXCLIENT="http://www.2x.com/downloads/builds/applicationserver/${TWOXCLIENT_VER}/2XClient.deb"
 ###############################################################################
 set -u -e
 
@@ -53,7 +55,30 @@ upgrade_yatc() {
   mv ./__pycache__/yatc.*.pyc $YATCBIN
   chmod 755 $YATCBIN
 
+  apt-get purge -y autofs
+
+  # create directory to store mountpoints
+  mkdir /media/usbdisk
+  chown $RDPUSER /media/usbdisk
+
   return 0
+}
+
+# Upgrade 2xclient.
+#
+upgrade_twoxclient() {
+	echo -e "\t2X RDP client upgrade starting.\n"
+
+	dpkg --add-architecture i386
+
+	apt-get install -y pcscd:i386 libccid:i386 libpcsclite1:i386 libxpm4:i386 libxml2:i386 libstdc++6:i386 cryptsetup-bin libcryptsetup4 liblvm2app2.2 udisks
+
+	cd /tmp
+	wget $TWOXCLIENT -O ./2xclient.deb
+	dpkg -i ./2xclient.deb
+
+	echo -e "\t2X RDP client upgrade finished."
+	return 0
 }
 
 # Create user config directory.
@@ -72,8 +97,9 @@ create_config_dir() {
 #
 unmute() {
   if [ `ps aux | grep -v grep |grep -c pulseaudio` -eq 0 ]; then
-    amixer set PCM unmute || echo "Can't unmute PCM. Skipping..."
-    amixer set Master unmute
+    for DEV in "PCM" "Master"; do
+      amixer set $DEV 100 unmute || echo "Can't unmute $DEV. Skipping..."
+    done
     sudo -i -u $RDPUSER pulseaudio -D
     sleep 1
     sudo -i -u $RDPUSER pactl set-sink-mute 0 0
@@ -92,6 +118,9 @@ check_root || exit 0
 case $JOB in
   freerdp)
     upgrade_freerdp
+  ;;
+  2xclient)
+    upgrade_twoxclient
   ;;
   yatc)
     create_config_dir
