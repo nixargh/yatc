@@ -4,7 +4,10 @@ YATC 0.9.9:
 
   post-install.sh:
     1. Switch from autofs to mounter.
-    2. 2xclient version bumped to 14.1.3417.
+    2. Link to 2xclient changed from latest to particular version.
+
+  uprgade.sh:
+    1. 2xclient upgrade added.
 
 YATC 0.9.8:
   yatc.py:

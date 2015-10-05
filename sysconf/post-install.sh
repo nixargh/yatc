@@ -10,7 +10,7 @@ FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
 YATC_BRANCH="devel"
-TWOXCLIENT_VER="14.1.3417"
+TWOXCLIENT_VER="14.0.3213"
 TWOXCLIENT="http://www.2x.com/downloads/builds/applicationserver/${TWOXCLIENT_VER}/2XClient.deb"
 ###############################################################################
 set -u -e
@@ -171,8 +171,8 @@ twoxclient() {
 
   dpkg --add-architecture i386
 
-  apt-get install -y pcscd:i386 libccid:i386 libpcsclite1:i386 libxpm4:i386 libxml2:i386 libstdc++6:i386 cryptsetup-bin libcryptsetup4 liblvm2app2.2 udisks
-
+  apt-get install -y pcscd:i386 libccid:i386 libpcsclite1:i386 libxpm4:i386 libxml2:i386 libstdc++6:i386 cryptsetup-bin libcryptsetup4 liblvm2app2.2 udisks 
+  apt-get -f -y install
   cd /tmp
   wget $TWOXCLIENT -O ./2xclient.deb
   dpkg -i ./2xclient.deb

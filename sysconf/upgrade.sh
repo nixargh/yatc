@@ -10,7 +10,7 @@ FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
 YATC_BRANCH="devel"
 TMP_DIR="/tmp"
-TWOXCLIENT_VER="14.1.3417"
+TWOXCLIENT_VER="14.0.3213"
 TWOXCLIENT="http://www.2x.com/downloads/builds/applicationserver/${TWOXCLIENT_VER}/2XClient.deb"
 ###############################################################################
 set -u -e
@@ -131,7 +131,4 @@ esac
 # fix onership
 chown $RDPUSER:$RDPUSER -R /home/$RDPUSER
 
-echo "Upgraded. Rebooting..."
-
-# Finaly reboot
-reboot
+echo "Upgraded."
