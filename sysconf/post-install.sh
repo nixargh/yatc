@@ -107,7 +107,7 @@ common() {
   echo "exec /bin/login -f $RDPUSER < /dev/tty1 > /dev/tty1 2>&1" >> $TTY_CONF
 
   # add some rights to user
-  echo -e "$RDPUSER\tALL=(root) NOPASSWD:/sbin/reboot,/sbin/poweroff\n" >> /etc/sudoers
+  echo -e "$RDPUSER\tALL=(root) NOPASSWD:/sbin/reboot,/sbin/poweroff,/bin/mount,/bin/umount\n" >> /etc/sudoers
 
   # setup X and application to start on boot at terminal
   BASH_PROFILE=/home/$RDPUSER/.bash_profile

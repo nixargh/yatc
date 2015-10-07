@@ -57,6 +57,10 @@ upgrade_yatc() {
 
   apt-get purge -y autofs
 
+  # add mount, umount to sudoers
+  sed -i "s/$RDPUSER\tALL=(root) NOPASSWD:.*//g" /etc/sudoers
+  echo -e "$RDPUSER\tALL=(root) NOPASSWD:/sbin/reboot,/sbin/poweroff,/bin/mount,/bin/umount\n" >> /etc/sudoers
+
   # create directory to store mountpoints
   mkdir /media/usbdisk
   chown $RDPUSER /media/usbdisk
