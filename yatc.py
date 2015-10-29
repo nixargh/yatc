@@ -3,7 +3,7 @@
 # Yet Another Thin Client - small gui application to start freerdp session
 # to MS Terminal Server
 # (*w) author: nixargh <nixargh@gmail.com>
-__version__ = "0.9.9"
+__version__ = "0.9.10"
 #### LICENSE #################################################################
 # YATC
 # Copyright (C) 2014  nixargh <nixargh@gmail.com>
@@ -817,7 +817,7 @@ class Mounter:
         directory = "%s/%s" % (self.root, model)
         if not os.path.isdir(directory):
             os.makedirs(directory)
-        ec = call(["sudo", "mount", "-osync,nodev,nosuid,umask=000", partition, directory])
+        ec = call(["sudo", "mount", "-osync,nodev,nosuid,umask=000,utf8=1", partition, directory])
         if ec == 0:
             logging.info("%s mounted successfully to %s." % (partition,
                 directory))
