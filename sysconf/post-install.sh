@@ -12,6 +12,7 @@ YATC_REPO="https://github.com/nixargh/yatc.git"
 YATC_BRANCH="dev"
 TWOXCLIENT_VER="14.0.3213"
 TWOXCLIENT="http://www.2x.com/downloads/builds/applicationserver/${TWOXCLIENT_VER}/2XClient.deb"
+LOCALE="ru_RU.UTF-8"
 ###############################################################################
 set -u -e
 
@@ -58,6 +59,10 @@ common() {
   sed -i "{s/PermitRootLogin yes/PermitRootLogin no/}" $SSHD_CONF 
   echo -e "AllowGroups\tssh_users" >> $SSHD_CONF
   service ssh restart
+
+  # Add extra locale
+  locale-gen $LOCALE
+  update-locale
 
   # Unmute alsa & pulseaudio
   for DEV in "PCM" "Master"; do

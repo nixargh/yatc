@@ -12,6 +12,7 @@ YATC_BRANCH="dev"
 TMP_DIR="/tmp"
 TWOXCLIENT_VER="14.0.3213"
 TWOXCLIENT="http://www.2x.com/downloads/builds/applicationserver/${TWOXCLIENT_VER}/2XClient.deb"
+LOCALE="ru_RU.UTF-8"
 ###############################################################################
 set -u -e
 
@@ -55,15 +56,21 @@ upgrade_yatc() {
   mv ./__pycache__/yatc.*.pyc $YATCBIN
   chmod 755 $YATCBIN
 
-  apt-get purge -y autofs
+  if [ $(dpkg -l |grep autofs |wc -l) -gt 0 ]; then
+    apt-get purge -y autofs
+  fi
 
   # add mount, umount to sudoers
   sed -i "s/$RDPUSER\tALL=(root) NOPASSWD:.*//g" /etc/sudoers
   echo -e "$RDPUSER\tALL=(root) NOPASSWD:/sbin/reboot,/sbin/poweroff,/bin/mount,/bin/umount\n" >> /etc/sudoers
 
   # create directory to store mountpoints
-  mkdir /media/usbdisk
+  test -d /media/usbdisk || mkdir /media/usbdisk
   chown $RDPUSER /media/usbdisk
+
+  # Add extra locale
+  locale-gen $LOCALE
+  update-locale
 
   return 0
 }

@@ -1,6 +1,12 @@
 YATC 0.9.10:
   yatc.py:
-    1. Add utf8=1 option for mount.
+    1. Add 'utf8=1' option for mount.
+
+  post-install.sh:
+    1. Add extra (Russian) locale.
+
+  uprgade.sh:
+    1. Add extra (Russian) locale.
 
 YATC 0.9.9:
   yatc.py:

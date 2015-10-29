@@ -671,7 +671,6 @@ class Settings():
         config.put(self.conf)
         config.write()
         self.window.destroy()
-        #self.parent.deiconify()
 
 
 # Watcher class
