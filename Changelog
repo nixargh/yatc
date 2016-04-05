@@ -1,3 +1,7 @@
+YATC 0.9.11:
+  post-install.sh:
+    1. Re-design 2xclient installation.
+
 YATC 0.9.10:
   yatc.py:
     1. Add 'utf8=1' option for mount.

@@ -1,7 +1,7 @@
 #!/bin/bash
 # script to deploy YATC on Ubuntu 12.04 - 14.04 (netinstall with only ssh server installed)
 # (*w) author: nixargh <nixargh@gmail.com>
-VERSION="0.9.10"
+VERSION="0.9.11"
 ##### Settings ################################################################
 # !!! must be executed from root !!!
 RDPUSER="user"
@@ -176,10 +176,10 @@ twoxclient() {
 
   dpkg --add-architecture i386
 
-  apt-get install -y pcscd:i386 libccid:i386 libpcsclite1:i386 libxpm4:i386 libxml2:i386 libstdc++6:i386 cryptsetup-bin libcryptsetup4 liblvm2app2.2 udisks 
-  apt-get -f -y install
   cd /tmp
   wget $TWOXCLIENT -O ./2xclient.deb
+
+  dpkg -i ./2xclient.deb || apt-get -f -y install
   dpkg -i ./2xclient.deb
 
   echo -e "\t2X RDP client installation finished."
