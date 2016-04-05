@@ -36,16 +36,14 @@ from simplepam import authenticate
 logFile = os.path.expanduser("~/.yatc/yatc.log")
 versionFile = os.path.expanduser("~/.yatc/version")
 ##############################################################################
-# change current directory to script own directory
-#
 def chdirToHome():
+    """Change current directory to script own directory."""
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     os.chdir(dname)
 
-# authenticate user using PAM
-#
 def checkUser(user, password):
+    """Authenticate user using PAM."""
     auth = authenticate(user, password)
     if auth:
         logging.info("%s authenticated." % user)
@@ -54,27 +52,24 @@ def checkUser(user, password):
         logging.info("%s failed to authenticate: %s" % (user, auth))
         return False
 
-# check if TCP port 3389 at host is opened
-#
 def checkRDPPort(host):
+    """Check if TCP port 3389 at host is opened."""
     try:
         check_output(["nc", "-z", "-w1", host, "3389"], stderr=STDOUT)
         return True
     except:
         return False
 
-# get current screen resolution
-#
 def getScreenRes():
+    """Get current screen resolution."""
     output = str(check_output(["xrandr"]))
     screenRes = output.rsplit("\n")[0]
     screenRes = screenRes.rsplit(", ")[1]
     _, screenW, _, screeH = screenRes.rsplit(" ")
     return int(screenW), int(screeH)
 
-# get user with uid = 1000
-#
 def getAdmuser():
+    """Get user with uid = 1000."""
     file = open("/etc/passwd", "r")
     for line in file:
         line = line.rsplit(":")
@@ -84,22 +79,20 @@ def getAdmuser():
             return user
     return False
 
-# write version
-#
 def writeVersion(v_file):
+    """Write version."""
     file = open(v_file, "wb")
     file.write(bytes(__version__ + "\n", 'UTF-8'))
     file.close()
 
-# Logging
-#
 def createLog():
+    """Configure logging."""
     logging.basicConfig(filename = logFile, level = logging.INFO, format = '%(levelname)-8s [%(asctime)s] %(message)s') 
 ##############################################################################
 
-# Operations with configuration
-#
+
 class Config():
+    """Operations with configuration."""
     def __init__(self):
         from crypt import Crypt
         self.configFile = os.path.expanduser("~/.yatc/yatc.conf")
@@ -113,9 +106,8 @@ class Config():
         file.write(string)
         file.close()
 
-    # read config from file
-    #
     def read(self):
+        """Read config from file."""
         if not os.path.isfile(self.configFile):
             self.createConfig()
         file = open(self.configFile, "rb")
@@ -132,9 +124,8 @@ class Config():
         logging.debug(conf)
         self.config = conf
 
-    # write config to file
-    #
     def write(self):
+        """Write config to file."""
         # don't save user if this option unchecked
         if self.config.get("login"):
             if self.config["saveUser"] == 0:
@@ -151,21 +142,18 @@ class Config():
         file.close() 
         logging.info("Configuration wrote.")
 
-    # get current configuration
-    #
     def get(self):
+        """Get current configuration."""
         logging.info("Configuration is obtained.")
         return self.config
 
-    # put changed configuration
-    #
     def put(self, config):
+        """Put changed configuration."""
         logging.info("Configuration is updated.")
         self.config = config
 
-# Main apllication window
-#
 class App():
+    """Main apllication window."""
     def __init__(self, rdpBackend, config):
         logging.info("Starting GUI...")
 
@@ -226,9 +214,8 @@ class App():
 
         self.root.mainloop()
 
-    # Add RDP option from dictionary to list.
-    #
     def setRdpOpt(self, opt, variable=None):
+        """Add RDP option from dictionary to list."""
         for rdpOpt in self.rdpOptions[opt][self.rdpBackend]: 
             if rdpOpt == '%unsupported%':
                 logging.info("%s currently not suported by %s." % (opt, self.rdpBackend))
@@ -239,9 +226,8 @@ class App():
                     rdpOpt = rdpOpt.replace('%variable%', variable)
                 self.rdp.append(rdpOpt)
 
-    # Idiot's dialog.
-    #
     def areYouSureDialog(self, question):
+        """Idiot's dialog."""
         logging.info("Showing re-asking dialog.")
 
         self.root.withdraw()
@@ -252,9 +238,8 @@ class App():
             self.root.deiconify()
             return False
     
-    # Information frame.
-    #
     def infoFrame(self):
+        """Information frame."""
         infoFrame = Frame(self.mainFrame)
         infoFrame.place(x = 50, y = 30, width = 400, height = 50)
 
@@ -262,9 +247,8 @@ class App():
         infoLabel = Label(infoFrame, width = 400, height = 50, anchor = "w", wraplength = 380, justify = "left", fg = "red", textvariable = self.infoVar)
         infoLabel.place(x = 10, y = 5, width = 380, height = 40)
     
-    # Connection frame.
-    #
     def connectFrame(self):
+        """Connection frame."""
         connectFrame = Frame(self.mainFrame, bd = 2, relief = "groove")
         connectFrame.place(x = 50, y = 80, width = 400, height = 150)
 
@@ -299,9 +283,8 @@ class App():
 
         self.passwordVar.trace("w", self.enableConnect)
 
-    # make connection Button active or disabled
-    #
     def enableConnect(self, *args):
+        """Make connection Button active or disabled."""
         login = self.loginVar.get()
         password = self.passwordVar.get()
         if len(login) > 0 and len(password) > 0:
@@ -310,9 +293,8 @@ class App():
             self.connectButton.config(state = "disabled")
 
 
-    # Frame with other button at the bottom of window
-    #
     def systemFrame(self):
+        """Frame with other button at the bottom of window."""
         systemFrame = Frame(self.mainFrame)
         systemFrame.place(x = 50, y = 280, width = 400 )
 
@@ -325,9 +307,8 @@ class App():
         settingsButton = Button(systemFrame, width = 8, text = "Настройки", command = self.settings)
         settingsButton.pack(side = 'left')
 
-    # command for RDP connection
-    #
     def connectRDP(self, event = None):
+        """Command for RDP connection."""
         logging.info("Starting RDP...")
 
         # get user login
@@ -442,9 +423,8 @@ class App():
         # clear RDP connection options
         self.rdp.clear()
 
-    # command for reboot
-    #
     def reboot(self):
+        """Command for reboot."""
         logging.info("Reboot requested.")
         if self.areYouSureDialog("Перезагрузить компьютер?"):
             logging.info("Rebooting.")
@@ -452,9 +432,8 @@ class App():
         else:
             logging.info("Reboot canceled.")
 
-    # command for shutdown
-    # 
     def shutdown(self):
+        """Command for shutdown."""
         logging.info("Shutdown requested.")
         if self.areYouSureDialog("Выключить компьютер?"):
             logging.info("Shutting down.")
@@ -462,9 +441,8 @@ class App():
         else:
             logging.info("Shutdown canceled.")
 
-    # command to start Settings window
-    #
     def settings(self, event=None):
+        """Command to start Settings window."""
         self.password = None
         self.askPassword()
         self.root.wait_window(self.askPassTop)
@@ -473,9 +451,8 @@ class App():
                 self.password = None
                 settings = Settings(self.root, self.config)
                 
-    # password dialog
-    #
     def askPassword(self):
+        """Password dialog."""
         self.askPassTop = Toplevel(self.mainFrame, bd = 2, relief = "raised", cursor = "left_ptr")
         settingsW = 200
         settingsH = 90
@@ -500,15 +477,13 @@ class App():
 
         self.askPassTop.bind("<Return>", self.enterpass)
     
-    # password callback
-    #
     def enterpass(self, event=None):
+        """Password callback."""
         self.password = self.askPassEntry.get()
         self.askPassTop.destroy()
 
-# Settings window
-#
 class Settings():
+    """Settings window."""
     def __init__(self, parent, config):
         self.conf = config.get()
         self.parent = parent
@@ -530,9 +505,8 @@ class Settings():
         closeButton = Button(self.window, text = "Close", width = 5, command = self.quitSettings) 
         closeButton.pack(side = "bottom")
 
-    # Frame with settings
-    #
     def createSettingsFrame(self):
+        """Frame with settings."""
         bWidth = 31
         sWidth = 10
 
@@ -655,9 +629,8 @@ class Settings():
         self.rdpInactive = rdpInactiveEntry.get
 
 
-    # command to close Settings window and save settings
-    #
     def quitSettings(self):
+        """Command to close Settings window and save settings."""
         self.conf["host1"] = self.host1()
         self.conf["domain1"] = self.domain1()
         self.conf["host2"] = self.host2()
@@ -673,9 +646,8 @@ class Settings():
         self.window.destroy()
 
 
-# Watcher class
-#
 class Watcher():
+    """Watcher class."""
     def __init__(self, config):
         logging.info("Initializing watcher.")
         defaultThreshold = 10800
@@ -695,15 +667,13 @@ class Watcher():
         self.thread = threading.Thread(target=self.check_loop, args=(inactive,))
         self.thread.start()
 
-    # Set self.exit to False to end check_loop and stop Watcher.
-    #
     def stop(self):
+        """Set self.exit to False to end check_loop and stop Watcher."""
         logging.info("Stopping watcher.")
         self.exit = True
 
-    # Shutdown if no connection was found for _inactive_ seconds
-    #
     def check_loop(self, inactive):
+        """Shutdown if no connection was found for _inactive_ seconds."""
         spent = 0
         pause = 10
         while (self.exit == False):
@@ -718,9 +688,8 @@ class Watcher():
                     call(["sudo", "poweroff"])
             time.sleep(pause)
 
-    # Check if some TCP connecton to port 3389 established.
-    #
     def check_rdp(self):
+        """Check if some TCP connecton to port 3389 established."""
         try:
             netstat = check_output(['netstat', '-nt'], stderr=STDOUT).decode('utf-8')
             netstat = netstat.split(os.linesep)
@@ -733,9 +702,8 @@ class Watcher():
             logging.error("Failed to get netstat output. Exit code: %s. Output: %s." % (err.returncode, err.output))
             return True
 
-# Mounter class
-#
 class Mounter:
+    """Mounter class."""
     def __init__(self):
         logging.info("Starting mounter.")
         self.root = "/media/usbdisk"
@@ -744,17 +712,15 @@ class Mounter:
         self.thread = threading.Thread(target=self.mount_loop)
         self.thread.start()
 
-    # Remove all subdirectories from self.root dir
-    #
     def clean_dir(self):
+        """Remove all subdirectories from self.root dir."""
         logging.info("Cleaning %s directory." % self.root)
         for entry in os.listdir(self.root):
             directory = "%s/%s" % (self.root, entry)
             os.rmdir(directory)
 
-    # Look for removable devices
-    #
     def mount_loop(self):
+        """Look for removable devices."""
         pause = 1
         block_dir = "/sys/block"
         mounted = dict()
@@ -785,33 +751,29 @@ class Mounter:
 
             time.sleep(pause)
 
-    # Check device is removable
-    #
     def removable(self, dev):
+        """Check device is removable."""
         with open("%s/removable" % dev, "r") as rem_file:
             if int(rem_file.read()) == 1:
                 return True
         return False
 
-    # Get device model
-    #
     def get_model(self, dev):
+        """Get device model."""
         with open("%s/device/model" % dev, "r") as model_file:
             model = model_file.read().rstrip(' \n').replace(" ", "_")
         return model
 
-    # Check if partition mounted
-    #
     def mounted(self, partition):
+        """Check if partition mounted."""
         with open("/proc/mounts", "r") as mounts_file:
             for line in mounts_file:
                 if re.match("%s\s" % partition, line):
                     return True
         return False
 
-    # Mount partition
-    #
     def mount(self, partition, model):
+        """ Mount partition."""
         logging.info("Mounting %s." % partition)
         directory = "%s/%s" % (self.root, model)
         if not os.path.isdir(directory):
@@ -826,9 +788,8 @@ class Mounter:
                     (partition, directory, ec))
             return False
 
-    # Cleanup mount point after partition removed
-    #
     def clean(self, partition, model):
+        """Cleanup mount point after partition removed."""
         directory = "%s/%s" % (self.root, model)
         logging.info("Cleaning directory %s." % directory)
         if os.path.isdir(directory):
@@ -842,10 +803,8 @@ class Mounter:
                         (partition, ec))
                 return False
 
-
-    # Set self.exit to False to end mount_loop and stop Mounter.
-    #
     def stop(self):
+        """Set self.exit to False to end mount_loop and stop Mounter."""
         logging.info("Stopping mounter.")
         self.exit = True
 

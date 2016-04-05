@@ -10,7 +10,7 @@ FREERDP_REPO="https://github.com/FreeRDP/FreeRDP.git"
 FREERDP_BRANCH="c9bc88d5f0fed0de03ee697dd382ba8f8a434a82"
 YATC_REPO="https://github.com/nixargh/yatc.git"
 YATC_BRANCH="dev"
-TWOXCLIENT_VER="14.0.3213"
+TWOXCLIENT_VER="14.1.3479"
 TWOXCLIENT="http://www.2x.com/downloads/builds/applicationserver/${TWOXCLIENT_VER}/2XClient.deb"
 LOCALE="ru_RU.UTF-8"
 ###############################################################################
@@ -111,7 +111,7 @@ common() {
   sed -i '{s/exec/#exec/}' $TTY_CONF 
   echo "exec /bin/login -f $RDPUSER < /dev/tty1 > /dev/tty1 2>&1" >> $TTY_CONF
 
-  # add some rights to user
+  # add some permissions to user
   echo -e "$RDPUSER\tALL=(root) NOPASSWD:/sbin/reboot,/sbin/poweroff,/bin/mount,/bin/umount\n" >> /etc/sudoers
 
   # setup X and application to start on boot at terminal
