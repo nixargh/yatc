@@ -1,12 +1,13 @@
 YATC 0.9.11:
+  yatc.py:
+    1. Mounter improvements: check device is connected through USB even if it isn't 'removable'; check that device is storage device.
+
   post-install.sh:
     1. Re-design 2xclient installation.
-    2. Bump 2xclient version to 3479.
 
 
   uprgade.sh:
     1. Re-design 2xclient installation.
-    2. Bump 2xclient version to 3479.
 
 YATC 0.9.10:
   yatc.py:

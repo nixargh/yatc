@@ -729,14 +729,15 @@ class Mounter:
             for entry in os.listdir(block_dir):
                 if re.match("sd.", entry):
                     device = "%s/%s" % (block_dir, entry)
-                    if self.removable(device):
-                        model = self.get_model(device)
-                        for subentry in os.listdir(device):
-                            if re.match("%s\d" % entry, subentry):
-                                partition = "/dev/%s" % subentry
-                                if not self.mounted(partition):
-                                    if self.mount(partition, model):
-                                        mounted[partition] = model
+                    if self.removable(device) or self.is_usb(device):
+                        if self.is_sd(device):
+                            model = self.get_model(device)
+                            for subentry in os.listdir(device):
+                                if re.match("%s\d" % entry, subentry):
+                                    partition = "/dev/%s" % subentry
+                                    if not self.mounted(partition):
+                                        if self.mount(partition, model):
+                                            mounted[partition] = model
 
             new_mounted = dict(mounted)
             for partition in mounted:
@@ -753,31 +754,61 @@ class Mounter:
 
     def removable(self, dev):
         """Check device is removable."""
+        removable = False
         with open("%s/removable" % dev, "r") as rem_file:
             if int(rem_file.read()) == 1:
-                return True
-        return False
+                removable = True
+        logging.debug("'{}' is removable: {}.".format(dev, removable))
+        return removable
+
+    def is_usb(self, dev):
+        """Check device is connected through USB."""
+        usb = False
+        full_path = os.readlink(dev)
+        if re.search("/.+/usb\d*/.+", full_path):
+            usb = True
+        logging.debug("'{}' is USB connected: {}.".format(dev, usb))
+        return usb
+
+    def is_sd(self, dev):
+        """Check device is Storage Device."""
+        sd = False
+        with open("{}/device/uevent".format(dev), "r") as f:
+            for line in f:
+                key, value = line.strip().split("=")
+                if key == "DRIVER" and value == "sd":
+                    sd = True
+        logging.debug("'{}' is storage device: {}".format(dev, sd))
+        return sd
 
     def get_model(self, dev):
         """Get device model."""
         with open("%s/device/model" % dev, "r") as model_file:
             model = model_file.read().rstrip(' \n').replace(" ", "_")
+        logging.debug("Device '%s' model: %s." % (dev, model))
         return model
 
     def mounted(self, partition):
         """Check if partition mounted."""
+        mounted = False
         with open("/proc/mounts", "r") as mounts_file:
             for line in mounts_file:
                 if re.match("%s\s" % partition, line):
-                    return True
-        return False
+                    mounted = True
+        logging.debug("'{}' is mounted: {}.".format(partition, mounted))
+        return mounted
 
     def mount(self, partition, model):
         """ Mount partition."""
         logging.info("Mounting %s." % partition)
         directory = "%s/%s" % (self.root, model)
         if not os.path.isdir(directory):
-            os.makedirs(directory)
+            try:
+                os.makedirs(directory)
+            except PermissionError:
+                logging.error(
+                    "Can't create '%s' directory: permissions denied." % directory)
+                return False
         ec = call(["sudo", "mount", "-osync,nodev,nosuid,umask=000,utf8=1", partition, directory])
         if ec == 0:
             logging.info("%s mounted successfully to %s." % (partition,
